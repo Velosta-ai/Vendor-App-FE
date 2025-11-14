@@ -7,7 +7,7 @@ const getApiUrl = () => {
     return "http://10.24.36.143:3001/api"; // your LAN IP
   }
   // In production, use your production URL
-  return "https://your-production-api.com/api";
+  return `${process.env.API_BASE_URL}`;
 };
 
 const API_BASE = getApiUrl();
