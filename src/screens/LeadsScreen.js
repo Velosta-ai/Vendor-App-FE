@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -8,18 +8,24 @@ import {
   RefreshControl,
   Linking,
   Alert,
-} from 'react-native';
-import { useNavigation } from '@react-navigation/native';
-import { COLORS, SPACING, FONT_SIZES, BORDER_RADIUS, SHADOWS } from '../constants/theme';
-import LeadCard from '../components/LeadCard';
-import { leadsService } from '../services/dataService';
-import { mockWhatsAppLeads, mockCallLeads } from '../services/mockData';
+} from "react-native";
+import { useNavigation } from "@react-navigation/native";
+import {
+  COLORS,
+  SPACING,
+  FONT_SIZES,
+  BORDER_RADIUS,
+  SHADOWS,
+} from "../constants/theme";
+import LeadCard from "../components/LeadCard";
+import { leadsService } from "../services/dataService";
+import { mockWhatsAppLeads, mockCallLeads } from "../services/mockData";
 
 const LeadsScreen = () => {
   const navigation = useNavigation();
   const [leads, setLeads] = useState([]);
   const [filteredLeads, setFilteredLeads] = useState([]);
-  const [activeFilter, setActiveFilter] = useState('all');
+  const [activeFilter, setActiveFilter] = useState("all");
   const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
@@ -32,23 +38,25 @@ const LeadsScreen = () => {
 
   const loadLeads = async () => {
     try {
-      // For now, use mock data. Replace with actual API call when backend is ready
-      // const whatsappLeads = await leadsService.getWhatsAppLeads();
-      // const callLeads = await leadsService.getCallLeads();
-      const allLeads = [...mockWhatsAppLeads, ...mockCallLeads].sort(
+      const allLeads = await leadsService.getLeads();
+
+      // Sort newest → oldest (your previous logic)
+      const sorted = allLeads.sort(
         (a, b) => new Date(b.timestamp) - new Date(a.timestamp)
       );
-      setLeads(allLeads);
+
+      setLeads(sorted);
+      console.log(sorted, "hola");
     } catch (error) {
-      console.error('Error loading leads:', error);
+      console.error("Error loading leads:", error);
     }
   };
 
   const applyFilter = (filter) => {
-    if (filter === 'all') {
+    if (filter === "all") {
       setFilteredLeads(leads);
     } else {
-      setFilteredLeads(leads.filter(lead => lead.status === filter));
+      setFilteredLeads(leads.filter((lead) => lead.status === filter));
     }
   };
 
@@ -59,53 +67,49 @@ const LeadsScreen = () => {
   };
 
   const handleOpenChat = (lead) => {
-    const url = lead.source === 'whatsapp'
-      ? `https://wa.me/${lead.phone.replace(/\D/g, '')}`
-      : `tel:${lead.phone}`;
-    
+    const url =
+      lead.source === "whatsapp"
+        ? `https://wa.me/${lead.phone.replace(/\D/g, "")}`
+        : `tel:${lead.phone}`;
+
     Linking.canOpenURL(url).then((supported) => {
       if (supported) {
         Linking.openURL(url);
       } else {
-        Alert.alert('Error', 'Cannot open this link');
+        Alert.alert("Error", "Cannot open this link");
       }
     });
   };
 
   const handleConvert = (lead) => {
-    navigation.navigate('AddBooking', { 
+    navigation.navigate("AddBooking", {
       prefillData: {
         phone: lead.phone,
-        customerName: '',
-      }
+        customerName: "",
+      },
     });
   };
 
   const handleCloseLead = async (lead) => {
-    Alert.alert(
-      'Close Lead',
-      'Are you sure you want to close this lead?',
-      [
-        {
-          text: 'Cancel',
-          style: 'cancel',
+    Alert.alert("Close Lead", "Are you sure you want to close this lead?", [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Close",
+        onPress: async () => {
+          try {
+            await leadsService.closeLead(lead.id);
+
+            setLeads(
+              leads.map((l) =>
+                l.id === lead.id ? { ...l, status: "closed" } : l
+              )
+            );
+          } catch (error) {
+            Alert.alert("Error", "Failed to close lead");
+          }
         },
-        {
-          text: 'Close',
-          onPress: async () => {
-            try {
-              // await leadsService.closeLead(lead.id);
-              // Update local state
-              setLeads(leads.map(l => 
-                l.id === lead.id ? { ...l, status: 'closed' } : l
-              ));
-            } catch (error) {
-              Alert.alert('Error', 'Failed to close lead');
-            }
-          },
-        },
-      ]
-    );
+      },
+    ]);
   };
 
   const renderFilterButton = (filter, label) => (
@@ -140,10 +144,10 @@ const LeadsScreen = () => {
     <View style={styles.container}>
       {/* Filter Tabs */}
       <View style={styles.filterContainer}>
-        {renderFilterButton('all', 'All')}
-        {renderFilterButton('new', 'New')}
-        {renderFilterButton('in_progress', 'In Progress')}
-        {renderFilterButton('closed', 'Closed')}
+        {renderFilterButton("all", "All")}
+        {renderFilterButton("new", "New")}
+        {renderFilterButton("in_progress", "In Progress")}
+        {renderFilterButton("closed", "Closed")}
       </View>
 
       {/* Leads List */}
@@ -170,7 +174,7 @@ const LeadsScreen = () => {
       {/* Floating Add Button */}
       <TouchableOpacity
         style={[styles.fab, SHADOWS.medium]}
-        onPress={() => navigation.navigate('AddLead')}
+        onPress={() => navigation.navigate("AddLead")}
       >
         <Text style={styles.fabIcon}>+</Text>
       </TouchableOpacity>
@@ -184,7 +188,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.backgroundGray,
   },
   filterContainer: {
-    flexDirection: 'row',
+    flexDirection: "row",
     backgroundColor: COLORS.background,
     paddingHorizontal: SPACING.lg,
     paddingVertical: SPACING.md,
@@ -199,13 +203,12 @@ const styles = StyleSheet.create({
     borderColor: COLORS.border,
   },
   filterButtonActive: {
-    backgroundColor: COLORS.primary,
-    borderColor: COLORS.primary,
+    backgroundColor: "#2563eb",
   },
   filterButtonText: {
     fontSize: FONT_SIZES.sm,
     color: COLORS.textSecondary,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   filterButtonTextActive: {
     color: COLORS.background,
@@ -215,8 +218,8 @@ const styles = StyleSheet.create({
   },
   emptyContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     paddingVertical: SPACING.xxl * 2,
   },
   emptyText: {
@@ -224,20 +227,20 @@ const styles = StyleSheet.create({
     color: COLORS.textSecondary,
   },
   fab: {
-    position: 'absolute',
+    position: "absolute",
     bottom: SPACING.xxl,
     right: SPACING.xl,
     width: 56,
     height: 56,
     borderRadius: BORDER_RADIUS.round,
-    backgroundColor: COLORS.primary,
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: "#2563eb",
+    justifyContent: "center",
+    alignItems: "center",
   },
   fabIcon: {
     fontSize: 28,
     color: COLORS.background,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
 });
 

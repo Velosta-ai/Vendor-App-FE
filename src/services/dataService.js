@@ -1,183 +1,134 @@
-import api from './api';
-import { API_ENDPOINTS } from '../constants/api';
+import Constants from "expo-constants";
+import { Platform } from "react-native";
 
-// Dashboard Service
-export const dashboardService = {
-  getStats: async () => {
-    try {
-      return await api.get(API_ENDPOINTS.DASHBOARD_STATS);
-    } catch (error) {
-      console.error('Error fetching dashboard stats:', error);
-      throw error;
-    }
-  },
+const getApiUrl = () => {
+  // In development, use your Mac's IP
+  if (__DEV__) {
+    return "http://10.24.36.143:3001/api"; // your LAN IP
+  }
+  // In production, use your production URL
+  return "https://your-production-api.com/api";
 };
 
-// Leads Service
+const API_BASE = getApiUrl();
+
+/* ------------------------------ LEADS ------------------------------ */
 export const leadsService = {
-  getAllLeads: async (status = null) => {
-    try {
-      const params = status ? { status } : {};
-      return await api.get(API_ENDPOINTS.LEADS, { params });
-    } catch (error) {
-      console.error('Error fetching leads:', error);
-      throw error;
-    }
+  async getLeads() {
+    const res = await fetch(`${API_BASE}/leads`);
+    return await res.json();
   },
 
-  getWhatsAppLeads: async () => {
-    try {
-      return await api.get(API_ENDPOINTS.WHATSAPP_LEADS);
-    } catch (error) {
-      console.error('Error fetching WhatsApp leads:', error);
-      throw error;
-    }
+  async createLead(payload) {
+    const res = await fetch(`${API_BASE}/leads`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+    return await res.json();
   },
 
-  getCallLeads: async () => {
-    try {
-      return await api.get(API_ENDPOINTS.CALL_LEADS);
-    } catch (error) {
-      console.error('Error fetching call leads:', error);
-      throw error;
-    }
-  },
-
-  updateLead: async (id, data) => {
-    try {
-      const url = API_ENDPOINTS.UPDATE_LEAD.replace(':id', id);
-      return await api.put(url, data);
-    } catch (error) {
-      console.error('Error updating lead:', error);
-      throw error;
-    }
-  },
-
-  closeLead: async (id) => {
-    try {
-      const url = API_ENDPOINTS.CLOSE_LEAD.replace(':id', id);
-      return await api.post(url);
-    } catch (error) {
-      console.error('Error closing lead:', error);
-      throw error;
-    }
-  },
-
-  createManualLead: async (data) => {
-    try {
-      return await api.post(API_ENDPOINTS.LEADS, data);
-    } catch (error) {
-      console.error('Error creating manual lead:', error);
-      throw error;
-    }
+  async closeLead(id) {
+    const res = await fetch(`${API_BASE}/leads/${id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ status: "closed" }),
+    });
+    return await res.json();
   },
 };
 
-// Bookings Service
-export const bookingsService = {
-  getAllBookings: async () => {
-    try {
-      return await api.get(API_ENDPOINTS.BOOKINGS);
-    } catch (error) {
-      console.error('Error fetching bookings:', error);
-      throw error;
-    }
-  },
-
-  getActiveBookings: async () => {
-    try {
-      return await api.get(API_ENDPOINTS.ACTIVE_BOOKINGS);
-    } catch (error) {
-      console.error('Error fetching active bookings:', error);
-      throw error;
-    }
-  },
-
-  getUpcomingBookings: async () => {
-    try {
-      return await api.get(API_ENDPOINTS.UPCOMING_BOOKINGS);
-    } catch (error) {
-      console.error('Error fetching upcoming bookings:', error);
-      throw error;
-    }
-  },
-
-  getReturnedBookings: async () => {
-    try {
-      return await api.get(API_ENDPOINTS.RETURNED_BOOKINGS);
-    } catch (error) {
-      console.error('Error fetching returned bookings:', error);
-      throw error;
-    }
-  },
-
-  createBooking: async (data) => {
-    try {
-      return await api.post(API_ENDPOINTS.CREATE_BOOKING, data);
-    } catch (error) {
-      console.error('Error creating booking:', error);
-      throw error;
-    }
-  },
-
-  updateBooking: async (id, data) => {
-    try {
-      const url = API_ENDPOINTS.UPDATE_BOOKING.replace(':id', id);
-      return await api.put(url, data);
-    } catch (error) {
-      console.error('Error updating booking:', error);
-      throw error;
-    }
-  },
-
-  markAsReturned: async (id) => {
-    try {
-      const url = API_ENDPOINTS.MARK_RETURNED.replace(':id', id);
-      return await api.post(url);
-    } catch (error) {
-      console.error('Error marking booking as returned:', error);
-      throw error;
-    }
-  },
-};
-
-// Bikes Service
+/* ------------------------------ BIKES ------------------------------ */
 export const bikesService = {
-  getAllBikes: async () => {
-    try {
-      return await api.get(API_ENDPOINTS.BIKES);
-    } catch (error) {
-      console.error('Error fetching bikes:', error);
-      throw error;
-    }
+  async getBikes() {
+    const res = await fetch(`${API_BASE}/bikes`);
+    return await res.json();
   },
 
-  createBike: async (data) => {
-    try {
-      return await api.post(API_ENDPOINTS.CREATE_BIKE, data);
-    } catch (error) {
-      console.error('Error creating bike:', error);
-      throw error;
-    }
+  async getBikeById(id) {
+    const res = await fetch(`${API_BASE}/bikes/${id}`);
+    return await res.json();
   },
 
-  updateBike: async (id, data) => {
-    try {
-      const url = API_ENDPOINTS.UPDATE_BIKE.replace(':id', id);
-      return await api.put(url, data);
-    } catch (error) {
-      console.error('Error updating bike:', error);
-      throw error;
-    }
+  async createBike(payload) {
+    const res = await fetch(`${API_BASE}/bikes`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+    return await res.json();
   },
 
-  deleteBike: async (id) => {
-    try {
-      const url = API_ENDPOINTS.DELETE_BIKE.replace(':id', id);
-      return await api.delete(url);
-    } catch (error) {
-      console.error('Error deleting bike:', error);
-      throw error;
-    }
+  async updateBike(id, payload) {
+    const res = await fetch(`${API_BASE}/bikes/${id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+    return await res.json();
+  },
+
+  async updateBikeStatus(id, status) {
+    const res = await fetch(`${API_BASE}/bikes/${id}/status`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ status }),
+    });
+    return await res.json();
+  },
+  async deleteBike(id) {
+    const res = await fetch(`${API_BASE}/bikes/${id}`, {
+      method: "DELETE",
+    });
+    return await res.json();
+  },
+};
+
+/* ------------------------------ BOOKINGS ------------------------------ */
+export const bookingsService = {
+  async getBookings(status = null) {
+    const url = status
+      ? `${API_BASE}/bookings?status=${status}`
+      : `${API_BASE}/bookings`;
+
+    const res = await fetch(url);
+    return await res.json();
+  },
+
+  async getBookingById(id) {
+    const res = await fetch(`${API_BASE}/bookings/${id}`);
+    return await res.json();
+  },
+
+  async createBooking(payload) {
+    const res = await fetch(`${API_BASE}/bookings`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+    return await res.json();
+  },
+
+  async updateBooking(id, payload) {
+    const res = await fetch(`${API_BASE}/bookings/${id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+    return await res.json();
+  },
+
+  async markReturned(id) {
+    const res = await fetch(`${API_BASE}/bookings/${id}/returned`, {
+      method: "PATCH",
+    });
+    return await res.json();
+  },
+
+  async deleteBooking(id) {
+    const res = await fetch(`${API_BASE}/bookings/${id}`, {
+      method: "DELETE",
+    });
+    return await res.json();
   },
 };
