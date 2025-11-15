@@ -1,40 +1,22 @@
 {
   "expo": {
-    "name": "Velosta CRM",
-    "slug": "velosta-vendor-crm",
-    "version": "1.0.0",
-    "orientation": "portrait",
-    "icon": "./assets/icon.png",
-    "userInterfaceStyle": "light",
-    "splash": {
-      "image": "./assets/splash.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
-    },
-    "assetBundlePatterns": [
-      "**/*"
-    ],
-    "ios": {
-      "supportsTablet": true,
-      "bundleIdentifier": "com.velosta.vendorcrm"
-    },
-    "android": {
-      "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
-      },
-      "package": "com.velosta.vendorcrm"
-    },
-    "web": {
-      "favicon": "./assets/favicon.png"
-    },
     "extra": {
       "eas": {
-        "projectId": "64d92eee-e6a7-4442-8d00-d23f1d912f77"
+        "projectId": "79f72f71-f320-4f6a-8fad-98204f55f749"
       }
     },
-    "plugins": [
-      "expo-font"
-    ]
+    "android": {
+      "package": "com.saidevlpr.velostavendorcrm",
+      "splash": {
+        "backgroundColor": "#FFFFFF",
+        "resizeMode": "contain",
+        "image": "./assets/splash.png"
+      }
+    },
+    "splash": {
+      "backgroundColor": "#FFFFFF",
+      "resizeMode": "contain",
+      "image": "./assets/splash.png"
+    }
   }
 }
