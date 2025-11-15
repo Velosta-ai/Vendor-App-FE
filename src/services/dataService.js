@@ -4,10 +4,10 @@ import { Platform } from "react-native";
 const getApiUrl = () => {
   // In development, use your Mac's IP
   if (__DEV__) {
-    return "http://10.24.36.143:3001/api"; // your LAN IP
+    return "https://vendor-app-be.vercel.app/api"; // your LAN IP
   }
   // In production, use your production URL
-  return `${process.env.API_BASE_URL}`;
+  return `https://vendor-app-be.vercel.app/api`;
 };
 
 const API_BASE = getApiUrl();
