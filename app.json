@@ -1,10 +1,5 @@
 {
   "expo": {
-    "extra": {
-      "eas": {
-        "projectId": "79f72f71-f320-4f6a-8fad-98204f55f749"
-      }
-    },
     "android": {
       "package": "com.saidevlpr.velostavendorcrm",
       "splash": {
@@ -17,6 +12,11 @@
       "backgroundColor": "#FFFFFF",
       "resizeMode": "contain",
       "image": "./assets/splash.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "64d92eee-e6a7-4442-8d00-d23f1d912f77"
+      }
     }
   }
 }
