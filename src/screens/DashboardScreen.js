@@ -28,8 +28,8 @@ import { mockDashboardStats } from "../services/mockData";
 // 🎨 AUTHENTIC PROFESSIONAL COLORS (Inspired by Linear, Stripe, Notion)
 const COLORS = {
   // Neutral Professional Palette
-  primary: "#2563eb", // Deep trustworthy blue
-  primaryHover: "#1d4ed8",
+  primary: "#FF6F00", // Vibrant orange
+  primaryHover: "#E65100",
 
   // Backgrounds (subtle, not harsh white)
   background: "#f8f9fb",

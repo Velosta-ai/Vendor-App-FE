@@ -16,7 +16,7 @@ import { bikesService } from "../services/dataService";
 
 // Professional Colors
 const COLORS = {
-  primary: "#2563eb",
+  primary: "#FF6F00",
   background: "#f8f9fb",
   surface: "#ffffff",
 

@@ -30,7 +30,7 @@ import { bookingsService, bikesService } from "../services/dataService";
 // THEME
 //
 const COLORS = {
-  primary: "#2563eb",
+  primary: "#FF6F00",
   background: "#f8f9fb",
   surface: "#ffffff",
 
@@ -43,7 +43,7 @@ const COLORS = {
   border: {
     light: "#e2e8f0",
     medium: "#cbd5e1",
-    focus: "#2563eb",
+    focus: "#FF6F00",
   },
 
   success: "#059669",

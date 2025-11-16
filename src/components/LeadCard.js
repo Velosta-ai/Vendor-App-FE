@@ -17,7 +17,7 @@ import {
 
 // Professional Colors (matching BikesScreen)
 const COLORS = {
-  primary: "#2563eb",
+  primary: "#FF6F00",
   background: "#f8f9fb",
   surface: "#ffffff",
 
@@ -33,8 +33,8 @@ const COLORS = {
   },
 
   status: {
-    new: "#2563eb",
-    newBg: "#eff6ff",
+    new: "#FF6F00",
+    newBg: "#FFF3E0",
     inProgress: "#d97706",
     inProgressBg: "#fef3c7",
     closed: "#059669",
@@ -44,8 +44,8 @@ const COLORS = {
   source: {
     whatsapp: "#25d366",
     whatsappBg: "#f0fdf4",
-    call: "#2563eb",
-    callBg: "#eff6ff",
+    call: "#FF6F00",
+    callBg: "#FFF3E0",
   },
 };
 

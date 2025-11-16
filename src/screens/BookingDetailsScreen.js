@@ -20,7 +20,7 @@ import {
 import { bookingsService } from "../services/dataService";
 
 const COLORS = {
-  primary: "#2563eb",
+  primary: "#FF6F00",
   background: "#f8f9fb",
   surface: "#ffffff",
   text: { primary: "#0f172a", secondary: "#475569", tertiary: "#94a3b8" },

@@ -23,7 +23,7 @@ const Stack = createStackNavigator();
 const LeadsStack = () => (
   <Stack.Navigator
     screenOptions={{
-      headerStyle: { backgroundColor: "#2563eb" },
+      headerStyle: { backgroundColor: COLORS.primary },
       headerTintColor: "white",
       headerTitleStyle: { fontWeight: "bold" },
     }}
@@ -47,7 +47,7 @@ const LeadsStack = () => (
 const BookingsStack = () => (
   <Stack.Navigator
     screenOptions={{
-      headerStyle: { backgroundColor: "#2563eb" },
+      headerStyle: { backgroundColor: COLORS.primary },
       headerTintColor: "white",
       headerTitleStyle: { fontWeight: "bold" },
     }}
@@ -84,7 +84,7 @@ const BookingsStack = () => (
 const BikesStack = () => (
   <Stack.Navigator
     screenOptions={{
-      headerStyle: { backgroundColor: "#2563eb" },
+      headerStyle: { backgroundColor: COLORS.primary },
       headerTintColor: COLORS.background,
       headerTitleStyle: { fontWeight: "bold" },
     }}
@@ -125,7 +125,7 @@ const AppNavigator = () => (
         return <Ionicons name={iconName} size={size} color={color} />;
       },
 
-      tabBarActiveTintColor: "#2563eb",
+      tabBarActiveTintColor: COLORS.primary,
       tabBarInactiveTintColor: COLORS.textSecondary,
       tabBarStyle: {
         backgroundColor: COLORS.background,
@@ -139,7 +139,7 @@ const AppNavigator = () => (
         fontWeight: "600",
       },
 
-      headerStyle: { backgroundColor: "#2563eb" },
+      headerStyle: { backgroundColor: COLORS.primary },
       headerTintColor: COLORS.background,
       headerTitleStyle: { fontWeight: "bold" },
     })}

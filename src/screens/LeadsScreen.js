@@ -203,7 +203,7 @@ const styles = StyleSheet.create({
     borderColor: COLORS.border,
   },
   filterButtonActive: {
-    backgroundColor: "#2563eb",
+    backgroundColor: COLORS.primary,
   },
   filterButtonText: {
     fontSize: FONT_SIZES.sm,
@@ -233,7 +233,7 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: BORDER_RADIUS.round,
-    backgroundColor: "#2563eb",
+    backgroundColor: COLORS.primary,
     justifyContent: "center",
     alignItems: "center",
   },

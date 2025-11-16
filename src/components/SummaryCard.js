@@ -10,7 +10,7 @@ import { TrendingUp, TrendingDown, Minus } from "lucide-react-native";
 
 // Professional Colors (matching BikesScreen)
 const COLORS = {
-  primary: "#2563eb",
+  primary: "#FF6F00",
   background: "#f8f9fb",
   surface: "#ffffff",
 
@@ -26,8 +26,8 @@ const COLORS = {
   },
 
   accent: {
-    blue: "#2563eb",
-    blueBg: "#eff6ff",
+    blue: "#FF6F00",
+    blueBg: "#FFF3E0",
     green: "#059669",
     greenBg: "#ecfdf5",
     orange: "#d97706",
