@@ -1,4 +1,5 @@
 import React from "react";
+import { TouchableOpacity, Text } from "react-native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { createStackNavigator } from "@react-navigation/stack";
 import { Ionicons } from "@expo/vector-icons";
@@ -107,7 +108,7 @@ const BikesStack = () => (
 // ----------------------
 // Main Tab Navigator
 // ----------------------
-const AppNavigator = () => (
+const AppNavigator = ({ onLogout }) => (
   <Tab.Navigator
     screenOptions={({ route }) => ({
       tabBarIcon: ({ focused, color, size }) => {
@@ -144,7 +145,20 @@ const AppNavigator = () => (
       headerTitleStyle: { fontWeight: "bold" },
     })}
   >
-    <Tab.Screen name="Dashboard" component={DashboardScreen} />
+    <Tab.Screen 
+      name="Dashboard" 
+      component={DashboardScreen}
+      options={{
+        headerRight: () => (
+          <TouchableOpacity
+            onPress={onLogout}
+            style={{ marginRight: 16, padding: 8 }}
+          >
+            <Text style={{ color: COLORS.background, fontWeight: '600' }}>Logout</Text>
+          </TouchableOpacity>
+        ),
+      }}
+    />
     <Tab.Screen
       name="Leads"
       component={LeadsStack}
