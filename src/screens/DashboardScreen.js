@@ -22,7 +22,6 @@ import {
 } from "lucide-react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import SummaryCard from "../components/SummaryCard";
-import { dashboardService } from "../services/dataService";
 import { mockDashboardStats } from "../services/mockData";
 import { COLORS, SPACING, FONT_SIZES, BORDER_RADIUS, SHADOWS } from "../constants/theme";
 
