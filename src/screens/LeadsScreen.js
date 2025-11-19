@@ -9,6 +9,7 @@ import {
   Linking,
   Alert,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { useNavigation } from "@react-navigation/native";
 import {
   COLORS,
@@ -141,7 +142,12 @@ const LeadsScreen = () => {
   );
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['top']}>
+      {/* Header */}
+      <View style={styles.header}>
+        <Text style={styles.headerTitle}>Leads</Text>
+      </View>
+
       {/* Filter Tabs */}
       <View style={styles.filterContainer}>
         {renderFilterButton("all", "All")}
@@ -178,32 +184,48 @@ const LeadsScreen = () => {
       >
         <Text style={styles.fabIcon}>+</Text>
       </TouchableOpacity>
-    </View>
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.backgroundGray,
+    backgroundColor: COLORS.background,
+  },
+  header: {
+    backgroundColor: COLORS.surface,
+    paddingHorizontal: SPACING.xl,
+    paddingTop: SPACING.md,
+    paddingBottom: SPACING.lg,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.borderLight,
+  },
+  headerTitle: {
+    fontSize: FONT_SIZES.xxl,
+    fontWeight: "700",
+    color: COLORS.textPrimary,
   },
   filterContainer: {
     flexDirection: "row",
-    backgroundColor: COLORS.background,
+    backgroundColor: COLORS.surface,
     paddingHorizontal: SPACING.lg,
     paddingVertical: SPACING.md,
     gap: SPACING.sm,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.borderLight,
   },
   filterButton: {
     paddingHorizontal: SPACING.lg,
     paddingVertical: SPACING.sm,
     borderRadius: BORDER_RADIUS.sm,
-    backgroundColor: COLORS.backgroundGray,
+    backgroundColor: COLORS.background,
     borderWidth: 1,
     borderColor: COLORS.border,
   },
   filterButtonActive: {
     backgroundColor: COLORS.primary,
+    borderColor: COLORS.primary,
   },
   filterButtonText: {
     fontSize: FONT_SIZES.sm,
@@ -211,7 +233,7 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
   filterButtonTextActive: {
-    color: COLORS.background,
+    color: COLORS.surface,
   },
   listContainer: {
     paddingVertical: SPACING.md,

@@ -1,37 +1,41 @@
-// Velosta Brand Colors
+// Velosta Brand Colors - New Palette
 export const COLORS = {
-  primary: '#FF6F00',      // Vibrant Orange
+  // Primary Brand Colors
+  primary: '#FF792A',           // Main Orange
+  primaryStart: '#FFE5D1',       // Gradient Start (Peach)
   primaryDark: '#E65100',
-  primaryLight: '#FF8F00',
+  primaryLight: '#FFA366',
+  
+  // Background Colors
+  background: '#FFF9ED',         // Light Cream Background
+  backgroundSecondary: '#FFE5D1', // Peach Background
+  backgroundGray: '#FFF9ED',     // Same as background for consistency
+  surface: '#FFFFFF',            // White surface
   
   // Status Colors
-  success: '#FF6F00',
-  warning: '#FFA726',
-  error: '#EF5350',
-  info: '#FF8A65',
+  success: '#059669',
+  warning: '#D97706',
+  error: '#DC2626',
+  info: '#0284C7',
   
   // Card Backgrounds
-  activeBookings: '#FFF3E0',
-  pendingReturns: '#FFE0B2',
-  newLeads: '#FFCCBC',
-  revenue: '#F5F5F5',
+  activeBookings: '#FFE5D1',
+  pendingReturns: '#FFE5D1',
+  newLeads: '#FFE5D1',
+  revenue: '#FFF9ED',
   
   // Text Colors
   textPrimary: '#212121',
   textSecondary: '#757575',
   textLight: '#BDBDBD',
   
-  // Background Colors
-  background: '#FFFFFF',
-  backgroundGray: '#F5F5F5',
-  
   // Border Colors
-  border: '#E0E0E0',
-  borderLight: '#F5F5F5',
+  border: '#FFE5D1',
+  borderLight: '#FFF9ED',
   
   // Lead Status
-  leadNew: '#4CAF50',
-  leadInProgress: '#FFA726',
+  leadNew: '#059669',
+  leadInProgress: '#FF792A',
   leadClosed: '#9E9E9E',
   
   // Source Colors
@@ -39,8 +43,17 @@ export const COLORS = {
   call: '#2196F3',
   
   // Bike Status
-  available: '#4CAF50',
-  booked: '#EF5350',
+  available: '#059669',
+  booked: '#FF792A',
+};
+
+// Gradient helper function
+export const getGradient = (startColor = COLORS.primaryStart, endColor = COLORS.primary) => {
+  return {
+    colors: [startColor, endColor],
+    start: { x: 0, y: 0 },
+    end: { x: 1, y: 0 },
+  };
 };
 
 export const SPACING = {

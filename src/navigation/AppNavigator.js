@@ -1,8 +1,9 @@
 import React from "react";
-import { TouchableOpacity, Text } from "react-native";
+import { TouchableOpacity, Text, Platform } from "react-native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { createStackNavigator } from "@react-navigation/stack";
 import { Ionicons } from "@expo/vector-icons";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { COLORS, FONT_SIZES } from "../constants/theme";
 
 // Screens
@@ -24,20 +25,16 @@ const Stack = createStackNavigator();
 const LeadsStack = () => (
   <Stack.Navigator
     screenOptions={{
-      headerStyle: { backgroundColor: COLORS.primary },
-      headerTintColor: "white",
-      headerTitleStyle: { fontWeight: "bold" },
+      headerShown: false,
     }}
   >
     <Stack.Screen
       name="LeadsList"
       component={LeadsScreen}
-      options={{ title: "Leads" }}
     />
     <Stack.Screen
       name="AddLead"
       component={AddLeadScreen}
-      options={{ title: "Add Lead" }}
     />
   </Stack.Navigator>
 );
@@ -48,33 +45,27 @@ const LeadsStack = () => (
 const BookingsStack = () => (
   <Stack.Navigator
     screenOptions={{
-      headerStyle: { backgroundColor: COLORS.primary },
-      headerTintColor: "white",
-      headerTitleStyle: { fontWeight: "bold" },
+      headerShown: false,
     }}
   >
     <Stack.Screen
       name="BookingsList"
       component={BookingsScreen}
-      options={{ title: "Bookings" }}
     />
 
     <Stack.Screen
       name="AddBooking"
       component={AddBookingScreen}
-      options={{ title: "Add Booking" }}
     />
 
     <Stack.Screen
       name="BookingDetails"
       component={BookingDetailsScreen}
-      options={{ title: "Booking Details" }} // ✅ CLEANED
     />
 
     <Stack.Screen
       name="AddLead"
       component={AddLeadScreen}
-      options={{ title: "Add Lead" }}
     />
   </Stack.Navigator>
 );
@@ -85,22 +76,16 @@ const BookingsStack = () => (
 const BikesStack = () => (
   <Stack.Navigator
     screenOptions={{
-      headerStyle: { backgroundColor: COLORS.primary },
-      headerTintColor: COLORS.background,
-      headerTitleStyle: { fontWeight: "bold" },
+      headerShown: false,
     }}
   >
     <Stack.Screen
       name="BikesList"
       component={BikesScreen}
-      options={{ title: "Bikes" }}
     />
     <Stack.Screen
       name="AddEditBike"
       component={AddEditBikeScreen}
-      options={({ route }) => ({
-        title: route.params?.bike ? "Edit Bike" : "Add Bike",
-      })}
     />
   </Stack.Navigator>
 );
@@ -108,56 +93,51 @@ const BikesStack = () => (
 // ----------------------
 // Main Tab Navigator
 // ----------------------
-const AppNavigator = ({ onLogout }) => (
-  <Tab.Navigator
-    screenOptions={({ route }) => ({
-      tabBarIcon: ({ focused, color, size }) => {
-        let iconName;
+const AppNavigator = ({ onLogout }) => {
+  const insets = useSafeAreaInsets();
+  
+  return (
+    <Tab.Navigator
+      screenOptions={({ route }) => ({
+        tabBarIcon: ({ focused, color, size }) => {
+          let iconName;
 
-        if (route.name === "Dashboard")
-          iconName = focused ? "home" : "home-outline";
-        if (route.name === "Leads")
-          iconName = focused ? "chatbubbles" : "chatbubbles-outline";
-        if (route.name === "Bookings")
-          iconName = focused ? "calendar" : "calendar-outline";
-        if (route.name === "Bikes")
-          iconName = focused ? "bicycle" : "bicycle-outline";
+          if (route.name === "Dashboard")
+            iconName = focused ? "home" : "home-outline";
+          if (route.name === "Leads")
+            iconName = focused ? "chatbubbles" : "chatbubbles-outline";
+          if (route.name === "Bookings")
+            iconName = focused ? "calendar" : "calendar-outline";
+          if (route.name === "Bikes")
+            iconName = focused ? "bicycle" : "bicycle-outline";
 
-        return <Ionicons name={iconName} size={size} color={color} />;
-      },
+          return <Ionicons name={iconName} size={size} color={color} />;
+        },
 
-      tabBarActiveTintColor: COLORS.primary,
-      tabBarInactiveTintColor: COLORS.textSecondary,
-      tabBarStyle: {
-        backgroundColor: COLORS.background,
-        borderTopColor: COLORS.border,
-        height: 60,
-        paddingBottom: 8,
-        paddingTop: 8,
-      },
-      tabBarLabelStyle: {
-        fontSize: FONT_SIZES.xs,
-        fontWeight: "600",
-      },
+        tabBarActiveTintColor: COLORS.primary,
+        tabBarInactiveTintColor: COLORS.textSecondary,
+        tabBarStyle: {
+          backgroundColor: COLORS.background,
+          borderTopColor: COLORS.border,
+          borderTopWidth: 1,
+          height: 60 + insets.bottom,
+          paddingBottom: Math.max(insets.bottom, 8),
+          paddingTop: 8,
+          elevation: 0,
+          shadowOpacity: 0,
+        },
+        tabBarLabelStyle: {
+          fontSize: FONT_SIZES.xs,
+          fontWeight: "600",
+        },
 
-      headerStyle: { backgroundColor: COLORS.primary },
-      headerTintColor: COLORS.background,
-      headerTitleStyle: { fontWeight: "bold" },
-    })}
-  >
+        headerShown: false,
+      })}
+    >
     <Tab.Screen 
       name="Dashboard" 
       component={DashboardScreen}
-      options={{
-        headerRight: () => (
-          <TouchableOpacity
-            onPress={onLogout}
-            style={{ marginRight: 16, padding: 8 }}
-          >
-            <Text style={{ color: COLORS.background, fontWeight: '600' }}>Logout</Text>
-          </TouchableOpacity>
-        ),
-      }}
+      initialParams={{ onLogout }}
     />
     <Tab.Screen
       name="Leads"
@@ -174,7 +154,8 @@ const AppNavigator = ({ onLogout }) => (
       component={BikesStack}
       options={{ headerShown: false }}
     />
-  </Tab.Navigator>
-);
+    </Tab.Navigator>
+  );
+};
 
 export default AppNavigator;

@@ -11,26 +11,28 @@ import {
   MapPin,
 } from "lucide-react-native";
 
+import { COLORS as THEME_COLORS } from "../constants/theme";
+
 const COLORS = {
-  primary: "#2563eb",
-  surface: "#ffffff",
+  primary: THEME_COLORS.primary,
+  surface: THEME_COLORS.surface,
 
   text: {
-    primary: "#0f172a",
-    secondary: "#475569",
+    primary: THEME_COLORS.textPrimary,
+    secondary: THEME_COLORS.textSecondary,
     tertiary: "#94a3b8",
   },
 
   border: {
-    light: "#e2e8f0",
+    light: THEME_COLORS.borderLight,
   },
 
   status: {
-    active: "#0284c7",
+    active: THEME_COLORS.info,
     activeBg: "#e0f2fe",
-    upcoming: "#d97706",
+    upcoming: THEME_COLORS.warning,
     upcomingBg: "#fef3c7",
-    returned: "#059669",
+    returned: THEME_COLORS.success,
     returnedBg: "#ecfdf5",
   },
 };

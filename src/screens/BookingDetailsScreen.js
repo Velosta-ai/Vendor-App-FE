@@ -9,22 +9,29 @@ import {
   Alert,
   Linking,
   ActivityIndicator,
+  Modal,
+  TextInput,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { useRoute, useNavigation } from "@react-navigation/native";
 import {
   Edit3,
   Trash2,
   CheckCircle2,
   MessageCircle,
+  IndianRupee,
+  X,
 } from "lucide-react-native";
 import { bookingsService } from "../services/dataService";
 
+import { COLORS as THEME_COLORS, SPACING, FONT_SIZES, BORDER_RADIUS } from "../constants/theme";
+
 const COLORS = {
-  primary: "#FF6F00",
-  background: "#f8f9fb",
-  surface: "#ffffff",
-  text: { primary: "#0f172a", secondary: "#475569", tertiary: "#94a3b8" },
-  border: { light: "#e2e8f0" },
+  primary: THEME_COLORS.primary,
+  background: THEME_COLORS.background,
+  surface: THEME_COLORS.surface,
+  text: { primary: THEME_COLORS.textPrimary, secondary: THEME_COLORS.textSecondary, tertiary: "#94a3b8" },
+  border: { light: THEME_COLORS.borderLight },
 };
 
 const BookingDetailsScreen = () => {
@@ -33,6 +40,8 @@ const BookingDetailsScreen = () => {
   const { id } = route.params || {};
   const [booking, setBooking] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [additionalPayment, setAdditionalPayment] = useState("");
 
   const loadBooking = async () => {
     try {
@@ -57,22 +66,52 @@ const BookingDetailsScreen = () => {
   };
 
   const handleMarkReturned = () => {
-    Alert.alert("Mark Returned", "Confirm mark as returned?", [
-      { text: "Cancel", style: "cancel" },
-      {
-        text: "Confirm",
-        onPress: async () => {
-          try {
-            await bookingsService.markReturned(id);
-            Alert.alert("Success", "Marked as returned");
-            loadBooking();
-          } catch (err) {
-            console.error(err);
-            Alert.alert("Error", "Failed to mark returned");
-          }
-        },
-      },
-    ]);
+    // Always show payment modal to allow adding payment
+    setShowPaymentModal(true);
+    setAdditionalPayment("");
+  };
+
+  const confirmMarkReturned = async (additionalAmount = 0) => {
+    try {
+      const newPaidAmount = (booking.paidAmount || 0) + additionalAmount;
+      
+      // Update paid amount if additional payment is provided
+      if (additionalAmount > 0) {
+        await bookingsService.updateBooking(id, {
+          ...booking,
+          paidAmount: newPaidAmount,
+        });
+      }
+      
+      // Mark as returned
+      await bookingsService.markReturned(id);
+      setShowPaymentModal(false);
+      Alert.alert("Success", "Marked as returned");
+      loadBooking();
+    } catch (err) {
+      console.error(err);
+      Alert.alert("Error", "Failed to mark returned");
+    }
+  };
+
+  const handlePaymentSubmit = () => {
+    const amount = parseFloat(additionalPayment) || 0;
+    const balance = Math.max(
+      0,
+      (booking.totalAmount || 0) - (booking.paidAmount || 0)
+    );
+    
+    if (amount < 0) {
+      Alert.alert("Error", "Amount cannot be negative");
+      return;
+    }
+    
+    if (amount > balance) {
+      Alert.alert("Error", `Amount cannot exceed balance of ₹${balance.toLocaleString("en-IN")}`);
+      return;
+    }
+    
+    confirmMarkReturned(amount);
   };
 
   const handleDelete = () => {
@@ -111,22 +150,26 @@ const BookingDetailsScreen = () => {
 
   if (loading) {
     return (
-      <View
-        style={[
-          styles.container,
-          { alignItems: "center", justifyContent: "center" },
-        ]}
-      >
-        <ActivityIndicator size="large" color={COLORS.primary} />
-      </View>
+      <SafeAreaView style={styles.safeArea} edges={['top']}>
+        <View
+          style={[
+            styles.container,
+            { alignItems: "center", justifyContent: "center" },
+          ]}
+        >
+          <ActivityIndicator size="large" color={COLORS.primary} />
+        </View>
+      </SafeAreaView>
     );
   }
 
   if (!booking) {
     return (
-      <View style={styles.container}>
-        <Text style={{ padding: 20 }}>No booking found.</Text>
-      </View>
+      <SafeAreaView style={styles.safeArea} edges={['top']}>
+        <View style={styles.container}>
+          <Text style={{ padding: 20 }}>No booking found.</Text>
+        </View>
+      </SafeAreaView>
     );
   }
 
@@ -139,8 +182,14 @@ const BookingDetailsScreen = () => {
   );
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <View style={styles.card}>
+    <SafeAreaView style={styles.safeArea} edges={['top']}>
+      {/* Header */}
+      <View style={styles.header}>
+        <Text style={styles.headerTitle}>Booking Details</Text>
+      </View>
+
+      <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+        <View style={styles.card}>
         {/* Header */}
         <View style={styles.headerRow}>
           <View>
@@ -256,17 +305,136 @@ const BookingDetailsScreen = () => {
           </TouchableOpacity>
         </View>
       </View>
-    </ScrollView>
+      </ScrollView>
+
+      {/* Payment Modal */}
+      <Modal
+        visible={showPaymentModal}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setShowPaymentModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Add Payment</Text>
+              <TouchableOpacity
+                onPress={() => setShowPaymentModal(false)}
+                style={styles.modalCloseButton}
+              >
+                <X size={24} color={COLORS.text.secondary} />
+              </TouchableOpacity>
+            </View>
+
+            <View style={styles.modalBody}>
+              <View style={styles.balanceInfo}>
+                <Text style={styles.balanceLabel}>Current Balance</Text>
+                <Text style={styles.balanceAmount}>
+                  ₹{Math.max(
+                    0,
+                    (booking.totalAmount || 0) - (booking.paidAmount || 0)
+                  ).toLocaleString("en-IN")}
+                </Text>
+              </View>
+
+              <View style={styles.paymentInputGroup}>
+                <Text style={styles.paymentLabel}>Additional Payment (₹)</Text>
+                <View style={styles.paymentInputContainer}>
+                  <View style={styles.paymentInputIcon}>
+                    <IndianRupee size={20} color={COLORS.text.tertiary} />
+                  </View>
+                  <TextInput
+                    style={styles.paymentInput}
+                    value={additionalPayment}
+                    onChangeText={(text) => {
+                      // Only allow numbers and decimal point
+                      const cleaned = text.replace(/[^0-9.]/g, "");
+                      // Only allow one decimal point
+                      const parts = cleaned.split(".");
+                      if (parts.length > 2) return;
+                      setAdditionalPayment(cleaned);
+                    }}
+                    placeholder="0"
+                    placeholderTextColor={COLORS.text.tertiary}
+                    keyboardType="numeric"
+                    autoFocus
+                  />
+                </View>
+                <Text style={styles.paymentHint}>
+                  Enter amount to add to paid amount (optional)
+                </Text>
+              </View>
+
+              <View style={styles.paymentSummary}>
+                <View style={styles.summaryRow}>
+                  <Text style={styles.summaryLabel}>Current Paid</Text>
+                  <Text style={styles.summaryValue}>
+                    ₹{(booking.paidAmount || 0).toLocaleString("en-IN")}
+                  </Text>
+                </View>
+                {additionalPayment && parseFloat(additionalPayment) > 0 && (
+                  <View style={styles.summaryRow}>
+                    <Text style={styles.summaryLabel}>Additional</Text>
+                    <Text style={[styles.summaryValue, { color: COLORS.primary }]}>
+                      +₹{parseFloat(additionalPayment || 0).toLocaleString("en-IN")}
+                    </Text>
+                  </View>
+                )}
+                <View style={[styles.summaryRow, styles.summaryRowTotal]}>
+                  <Text style={styles.summaryLabelTotal}>New Paid Amount</Text>
+                  <Text style={styles.summaryValueTotal}>
+                    ₹{((booking.paidAmount || 0) + parseFloat(additionalPayment || 0)).toLocaleString("en-IN")}
+                  </Text>
+                </View>
+              </View>
+            </View>
+
+            <View style={styles.modalFooter}>
+              <TouchableOpacity
+                style={styles.modalCancelButton}
+                onPress={() => setShowPaymentModal(false)}
+              >
+                <Text style={styles.modalCancelText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.modalConfirmButton}
+                onPress={handlePaymentSubmit}
+              >
+                <CheckCircle2 size={20} color="#fff" />
+                <Text style={styles.modalConfirmText}>Mark Returned</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: COLORS.background,
+  },
   container: { flex: 1, backgroundColor: COLORS.background },
-  content: { padding: 16 },
+  header: {
+    backgroundColor: COLORS.surface,
+    paddingHorizontal: SPACING.xl,
+    paddingTop: SPACING.md,
+    paddingBottom: SPACING.lg,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.border.light,
+  },
+  headerTitle: {
+    fontSize: FONT_SIZES.xxl,
+    fontWeight: "700",
+    color: COLORS.text.primary,
+  },
+  content: { padding: SPACING.lg },
   card: {
     backgroundColor: COLORS.surface,
-    borderRadius: 12,
-    padding: 16,
+    borderRadius: BORDER_RADIUS.lg,
+    padding: SPACING.lg,
     borderWidth: 1,
     borderColor: COLORS.border.light,
   },
@@ -320,6 +488,173 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   ctaText: { color: "#fff", fontWeight: "700", marginLeft: 8 },
+  
+  // Modal Styles
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    justifyContent: "flex-end",
+  },
+  modalContent: {
+    backgroundColor: COLORS.surface,
+    borderTopLeftRadius: BORDER_RADIUS.xl,
+    borderTopRightRadius: BORDER_RADIUS.xl,
+    paddingTop: SPACING.lg,
+    maxHeight: "80%",
+  },
+  modalHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingHorizontal: SPACING.xl,
+    paddingBottom: SPACING.lg,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.border.light,
+  },
+  modalTitle: {
+    fontSize: FONT_SIZES.xl,
+    fontWeight: "700",
+    color: COLORS.text.primary,
+  },
+  modalCloseButton: {
+    width: 36,
+    height: 36,
+    borderRadius: BORDER_RADIUS.md,
+    backgroundColor: COLORS.background,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  modalBody: {
+    padding: SPACING.xl,
+  },
+  balanceInfo: {
+    backgroundColor: COLORS.background,
+    padding: SPACING.lg,
+    borderRadius: BORDER_RADIUS.md,
+    marginBottom: SPACING.xl,
+    alignItems: "center",
+  },
+  balanceLabel: {
+    fontSize: FONT_SIZES.sm,
+    color: COLORS.text.secondary,
+    marginBottom: SPACING.xs,
+  },
+  balanceAmount: {
+    fontSize: FONT_SIZES.xxl,
+    fontWeight: "700",
+    color: COLORS.primary,
+  },
+  paymentInputGroup: {
+    marginBottom: SPACING.xl,
+  },
+  paymentLabel: {
+    fontSize: FONT_SIZES.sm,
+    fontWeight: "600",
+    color: COLORS.text.primary,
+    marginBottom: SPACING.sm,
+  },
+  paymentInputContainer: {
+    flexDirection: "row",
+    borderWidth: 1,
+    borderColor: COLORS.border.light,
+    borderRadius: BORDER_RADIUS.md,
+    backgroundColor: COLORS.background,
+    alignItems: "center",
+  },
+  paymentInputIcon: {
+    width: 44,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  paymentInput: {
+    flex: 1,
+    paddingVertical: SPACING.md,
+    paddingRight: SPACING.md,
+    fontSize: FONT_SIZES.lg,
+    fontWeight: "600",
+    color: COLORS.text.primary,
+  },
+  paymentHint: {
+    fontSize: FONT_SIZES.xs,
+    color: COLORS.text.tertiary,
+    marginTop: SPACING.xs,
+    marginLeft: SPACING.xs,
+  },
+  paymentSummary: {
+    backgroundColor: COLORS.background,
+    padding: SPACING.lg,
+    borderRadius: BORDER_RADIUS.md,
+    borderWidth: 1,
+    borderColor: COLORS.border.light,
+  },
+  summaryRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: SPACING.sm,
+  },
+  summaryRowTotal: {
+    marginTop: SPACING.md,
+    paddingTop: SPACING.md,
+    borderTopWidth: 1,
+    borderTopColor: COLORS.border.light,
+  },
+  summaryLabel: {
+    fontSize: FONT_SIZES.sm,
+    color: COLORS.text.secondary,
+  },
+  summaryValue: {
+    fontSize: FONT_SIZES.md,
+    fontWeight: "600",
+    color: COLORS.text.primary,
+  },
+  summaryLabelTotal: {
+    fontSize: FONT_SIZES.md,
+    fontWeight: "700",
+    color: COLORS.text.primary,
+  },
+  summaryValueTotal: {
+    fontSize: FONT_SIZES.lg,
+    fontWeight: "700",
+    color: COLORS.primary,
+  },
+  modalFooter: {
+    flexDirection: "row",
+    padding: SPACING.xl,
+    gap: SPACING.md,
+    borderTopWidth: 1,
+    borderTopColor: COLORS.border.light,
+  },
+  modalCancelButton: {
+    flex: 1,
+    paddingVertical: SPACING.md,
+    borderRadius: BORDER_RADIUS.md,
+    backgroundColor: COLORS.background,
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1,
+    borderColor: COLORS.border.light,
+  },
+  modalCancelText: {
+    fontSize: FONT_SIZES.md,
+    fontWeight: "600",
+    color: COLORS.text.secondary,
+  },
+  modalConfirmButton: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: SPACING.sm,
+    paddingVertical: SPACING.md,
+    borderRadius: BORDER_RADIUS.md,
+    backgroundColor: "#059669",
+  },
+  modalConfirmText: {
+    fontSize: FONT_SIZES.md,
+    fontWeight: "600",
+    color: "#fff",
+  },
 });
 
 export default BookingDetailsScreen;

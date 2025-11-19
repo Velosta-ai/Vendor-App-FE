@@ -11,6 +11,7 @@ import {
   Platform,
   KeyboardAvoidingView,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import {
   Save,
@@ -18,58 +19,47 @@ import {
   Trash2,
   Bike,
   CreditCard,
-  DollarSign,
+  IndianRupee,
   CheckCircle2,
   Info,
 } from "lucide-react-native";
 import { bikesService } from "../services/dataService";
 
-// Professional Colors
+import { COLORS as THEME_COLORS, SPACING as THEME_SPACING, FONT_SIZES as THEME_FONT_SIZES, BORDER_RADIUS as THEME_BORDER_RADIUS } from "../constants/theme";
+
+// Professional Colors - using new theme
 const COLORS = {
-  primary: "#FF6F00",
-  background: "#f8f9fb",
-  surface: "#ffffff",
+  primary: THEME_COLORS.primary,
+  background: THEME_COLORS.background,
+  surface: THEME_COLORS.surface,
 
   text: {
-    primary: "#0f172a",
-    secondary: "#475569",
+    primary: THEME_COLORS.textPrimary,
+    secondary: THEME_COLORS.textSecondary,
     tertiary: "#94a3b8",
   },
 
   border: {
-    light: "#e2e8f0",
-    medium: "#cbd5e1",
-    focus: "#FF6F00",
+    light: THEME_COLORS.borderLight,
+    medium: THEME_COLORS.border,
+    focus: THEME_COLORS.primary,
   },
 
-  error: "#dc2626",
+  error: THEME_COLORS.error,
   errorBg: "#fef2f2",
-  success: "#059669",
+  success: THEME_COLORS.success,
   successBg: "#ecfdf5",
 };
 
-const SPACING = {
-  xs: 4,
-  sm: 8,
-  md: 12,
-  lg: 16,
-  xl: 20,
-  xxl: 28,
-};
-
+const SPACING = THEME_SPACING;
 const TYPOGRAPHY = {
-  xs: 11,
-  sm: 13,
-  base: 15,
-  md: 17,
-  lg: 19,
+  xs: THEME_FONT_SIZES.xs,
+  sm: THEME_FONT_SIZES.sm,
+  base: THEME_FONT_SIZES.md,
+  md: THEME_FONT_SIZES.lg,
+  lg: THEME_FONT_SIZES.xl,
 };
-
-const RADIUS = {
-  sm: 6,
-  md: 10,
-  lg: 14,
-};
+const RADIUS = THEME_BORDER_RADIUS;
 
 // Input Field Component
 const InputField = ({
@@ -221,13 +211,14 @@ const AddEditBikeScreen = () => {
   };
 
   return (
-    <KeyboardAvoidingView
-      style={styles.container}
-      behavior={Platform.OS === "ios" ? "padding" : undefined}
-      keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 0}
-    >
-      {/* Header */}
-      <View style={styles.header}>
+    <SafeAreaView style={styles.safeArea} edges={['top']}>
+      <KeyboardAvoidingView
+        style={styles.container}
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 0}
+      >
+        {/* Header */}
+        <View style={styles.header}>
         <TouchableOpacity
           style={styles.backButton}
           onPress={() => navigation.goBack()}
@@ -317,7 +308,7 @@ const AddEditBikeScreen = () => {
               if (errors.dailyRate) setErrors({ ...errors, dailyRate: null });
             }}
             placeholder="e.g. 800"
-            icon={<DollarSign size={18} color={COLORS.text.tertiary} />}
+            icon={<IndianRupee size={18} color={COLORS.text.tertiary} />}
             keyboardType="numeric"
             error={errors.dailyRate}
           />
@@ -373,11 +364,16 @@ const AddEditBikeScreen = () => {
           )}
         </View>
       </ScrollView>
-    </KeyboardAvoidingView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: COLORS.background,
+  },
   container: {
     flex: 1,
     backgroundColor: COLORS.background,
@@ -386,7 +382,7 @@ const styles = StyleSheet.create({
   // Header
   header: {
     backgroundColor: COLORS.surface,
-    paddingTop: Platform.OS === "ios" ? 60 : SPACING.xxl,
+    paddingTop: SPACING.lg,
     paddingBottom: SPACING.lg,
     paddingHorizontal: SPACING.xl,
     borderBottomWidth: 1,

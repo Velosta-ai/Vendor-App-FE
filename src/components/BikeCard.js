@@ -4,33 +4,35 @@ import {
   Bike,
   Edit3,
   Calendar,
-  DollarSign,
+  IndianRupee,
   Settings,
   CheckCircle2,
   Clock,
   AlertCircle,
 } from "lucide-react-native";
 
+import { COLORS as THEME_COLORS } from "../constants/theme";
+
 const COLORS = {
-  primary: "#2563eb",
-  surface: "#ffffff",
+  primary: THEME_COLORS.primary,
+  surface: THEME_COLORS.surface,
 
   text: {
-    primary: "#0f172a",
-    secondary: "#475569",
+    primary: THEME_COLORS.textPrimary,
+    secondary: THEME_COLORS.textSecondary,
     tertiary: "#94a3b8",
   },
 
   border: {
-    light: "#e2e8f0",
+    light: THEME_COLORS.borderLight,
   },
 
   status: {
-    available: "#059669",
+    available: THEME_COLORS.success,
     availableBg: "#ecfdf5",
-    rented: "#d97706",
+    rented: THEME_COLORS.warning,
     rentedBg: "#fef3c7",
-    maintenance: "#dc2626",
+    maintenance: THEME_COLORS.error,
     maintenanceBg: "#fef2f2",
   },
 };
@@ -142,7 +144,7 @@ const BikeCard = ({ bike, onEdit }) => {
 
         <View style={styles.infoItem}>
           <View style={styles.infoIcon}>
-            <DollarSign size={14} color={COLORS.text.tertiary} />
+            <IndianRupee size={14} color={COLORS.text.tertiary} />
           </View>
           <View>
             <Text style={styles.infoLabel}>Daily Rate</Text>

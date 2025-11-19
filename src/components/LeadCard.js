@@ -15,37 +15,39 @@ import {
   User,
 } from "lucide-react-native";
 
-// Professional Colors (matching BikesScreen)
+import { COLORS as THEME_COLORS } from "../constants/theme";
+
+// Professional Colors - using new theme
 const COLORS = {
-  primary: "#FF6F00",
-  background: "#f8f9fb",
-  surface: "#ffffff",
+  primary: THEME_COLORS.primary,
+  background: THEME_COLORS.background,
+  surface: THEME_COLORS.surface,
 
   text: {
-    primary: "#0f172a",
-    secondary: "#475569",
+    primary: THEME_COLORS.textPrimary,
+    secondary: THEME_COLORS.textSecondary,
     tertiary: "#94a3b8",
   },
 
   border: {
-    light: "#e2e8f0",
-    medium: "#cbd5e1",
+    light: THEME_COLORS.borderLight,
+    medium: THEME_COLORS.border,
   },
 
   status: {
-    new: "#FF6F00",
-    newBg: "#FFF3E0",
-    inProgress: "#d97706",
+    new: THEME_COLORS.primary,
+    newBg: THEME_COLORS.backgroundSecondary,
+    inProgress: THEME_COLORS.warning,
     inProgressBg: "#fef3c7",
-    closed: "#059669",
+    closed: THEME_COLORS.success,
     closedBg: "#ecfdf5",
   },
 
   source: {
     whatsapp: "#25d366",
     whatsappBg: "#f0fdf4",
-    call: "#FF6F00",
-    callBg: "#FFF3E0",
+    call: THEME_COLORS.primary,
+    callBg: THEME_COLORS.backgroundSecondary,
   },
 };
 

@@ -8,10 +8,8 @@ import {
   TouchableOpacity,
   Platform,
 } from "react-native";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useRoute } from "@react-navigation/native";
 import {
-  Plus,
-  Eye,
   Bike,
   TimerReset,
   Smartphone,
@@ -20,105 +18,70 @@ import {
   ArrowRight,
   Calendar,
   Clock,
+  LogOut,
 } from "lucide-react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import SummaryCard from "../components/SummaryCard";
 import { dashboardService } from "../services/dataService";
 import { mockDashboardStats } from "../services/mockData";
+import { COLORS, SPACING, FONT_SIZES, BORDER_RADIUS, SHADOWS } from "../constants/theme";
 
-// 🎨 AUTHENTIC PROFESSIONAL COLORS (Inspired by Linear, Stripe, Notion)
-const COLORS = {
-  // Neutral Professional Palette
-  primary: "#FF6F00", // Vibrant orange
-  primaryHover: "#E65100",
-
-  // Backgrounds (subtle, not harsh white)
-  background: "#f8f9fb",
-  surface: "#ffffff",
-
-  // Text hierarchy (proper contrast ratios)
+// Use theme colors with new palette
+const THEME_COLORS = {
+  primary: COLORS.primary,
+  background: COLORS.background,
+  surface: COLORS.surface,
   text: {
-    primary: "#0f172a",
-    secondary: "#475569",
+    primary: COLORS.textPrimary,
+    secondary: COLORS.textSecondary,
     tertiary: "#94a3b8",
-    disabled: "#cbd5e1",
   },
-
-  // Borders (very subtle)
   border: {
-    light: "#e2e8f0",
-    medium: "#cbd5e1",
+    light: COLORS.borderLight,
+    medium: COLORS.border,
   },
-
-  // Status colors (muted, professional)
   status: {
-    success: "#059669",
+    success: COLORS.success,
     successBg: "#ecfdf5",
-    warning: "#d97706",
+    warning: COLORS.warning,
     warningBg: "#fef3c7",
-    error: "#dc2626",
+    error: COLORS.error,
     errorBg: "#fef2f2",
-    info: "#0284c7",
+    info: COLORS.info,
     infoBg: "#e0f2fe",
   },
-
-  // Accent colors (desaturated, sophisticated)
   accent: {
-    blue: "#0284c7",
+    blue: COLORS.info,
     blueBg: "#e0f2fe",
-    green: "#059669",
+    green: COLORS.success,
     greenBg: "#ecfdf5",
-    orange: "#ea580c",
-    orangeBg: "#fff7ed",
+    orange: COLORS.primary,
+    orangeBg: COLORS.backgroundSecondary,
     purple: "#7c3aed",
     purpleBg: "#f5f3ff",
   },
 };
 
-const SPACING = {
-  xs: 4,
-  sm: 8,
-  md: 12,
-  lg: 16,
-  xl: 20,
-  xxl: 28,
-  xxxl: 40,
-};
-
+// Use theme constants
 const TYPOGRAPHY = {
-  // Real font sizes that look professional
-  xs: 11,
-  sm: 13,
-  base: 15,
-  md: 17,
-  lg: 19,
-  xl: 22,
+  xs: FONT_SIZES.xs,
+  sm: FONT_SIZES.sm,
+  base: FONT_SIZES.md,
+  md: FONT_SIZES.lg,
+  lg: FONT_SIZES.xl,
+  xl: FONT_SIZES.xxl,
   xxl: 28,
   xxxl: 34,
 };
 
 const RADIUS = {
-  sm: 6,
-  md: 10,
-  lg: 14,
-  xl: 18,
+  sm: BORDER_RADIUS.sm,
+  md: BORDER_RADIUS.md,
+  lg: BORDER_RADIUS.lg,
+  xl: BORDER_RADIUS.xl,
 };
 
-const ELEVATION = {
-  sm: {
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.04,
-    shadowRadius: 3,
-    elevation: 2,
-  },
-  md: {
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 8,
-    elevation: 3,
-  },
-};
+const ELEVATION = SHADOWS;
 
 // Simple, clean stat card
 const StatCard = ({ title, value, subtitle, icon, bgColor, onPress }) => {
@@ -138,7 +101,7 @@ const StatCard = ({ title, value, subtitle, icon, bgColor, onPress }) => {
         {subtitle && <Text style={styles.statSubtitle}>{subtitle}</Text>}
       </View>
 
-      <ArrowRight size={18} color={COLORS.text.tertiary} />
+      <ArrowRight size={18} color={THEME_COLORS.text.tertiary} />
     </TouchableOpacity>
   );
 };
@@ -169,13 +132,14 @@ const ActionButton = ({
         </Text>
         {subtitle && <Text style={styles.actionSubtitle}>{subtitle}</Text>}
       </View>
-      <ArrowRight size={18} color={isPrimary ? "#fff" : COLORS.text.tertiary} />
+      <ArrowRight size={18} color={isPrimary ? "#fff" : THEME_COLORS.text.tertiary} />
     </TouchableOpacity>
   );
 };
 
 const DashboardScreen = () => {
   const navigation = useNavigation();
+  const route = useRoute();
   const [stats, setStats] = useState(mockDashboardStats);
   const [refreshing, setRefreshing] = useState(false);
   const [vendorName, setVendorName] = useState("Vendor");
@@ -226,38 +190,58 @@ const DashboardScreen = () => {
     });
   };
 
-  return (
-    <ScrollView
-      style={styles.container}
-      contentContainerStyle={styles.content}
-      refreshControl={
-        <RefreshControl
-          refreshing={refreshing}
-          onRefresh={onRefresh}
-          colors={[COLORS.primary]}
-          tintColor={COLORS.primary}
-        />
-      }
-      showsVerticalScrollIndicator={false}
-    >
-      {/* Clean header */}
-      <View style={styles.header}>
-        <View>
-          <Text style={styles.greeting}>{getGreeting()}</Text>
-          <Text style={styles.name}>{vendorName}</Text>
-        </View>
+  const handleLogout = () => {
+    const onLogout = route.params?.onLogout;
+    if (onLogout) {
+      onLogout();
+    } else {
+      // Fallback: try to navigate back
+      navigation.getParent()?.goBack();
+    }
+  };
 
-        <View style={styles.timeInfo}>
-          <View style={styles.timeRow}>
-            <Calendar size={14} color={COLORS.text.secondary} />
-            <Text style={styles.timeText}>{formatDate()}</Text>
+  return (
+    <SafeAreaView style={styles.safeArea} edges={['top']}>
+      <ScrollView
+        style={styles.container}
+        contentContainerStyle={styles.content}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            colors={[THEME_COLORS.primary]}
+            tintColor={THEME_COLORS.primary}
+          />
+        }
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Clean header */}
+        <View style={styles.header}>
+          <View style={styles.headerTop}>
+            <View>
+              <Text style={styles.greeting}>{getGreeting()}</Text>
+              <Text style={styles.name}>{vendorName}</Text>
+            </View>
+            <TouchableOpacity
+              style={styles.logoutButton}
+              onPress={handleLogout}
+              activeOpacity={0.7}
+            >
+              <LogOut size={20} color={THEME_COLORS.primary} />
+            </TouchableOpacity>
           </View>
-          <View style={styles.timeRow}>
-            <Clock size={14} color={COLORS.text.secondary} />
-            <Text style={styles.timeText}>{formatTime()}</Text>
+
+          <View style={styles.timeInfo}>
+            <View style={styles.timeRow}>
+              <Calendar size={14} color={THEME_COLORS.text.secondary} />
+              <Text style={styles.timeText}>{formatDate()}</Text>
+            </View>
+            <View style={styles.timeRow}>
+              <Clock size={14} color={THEME_COLORS.text.secondary} />
+              <Text style={styles.timeText}>{formatTime()}</Text>
+            </View>
           </View>
         </View>
-      </View>
 
       {/* Revenue card - simple and clear */}
       <View style={styles.section}>
@@ -270,12 +254,12 @@ const DashboardScreen = () => {
               </Text>
             </View>
             <View style={styles.revenueIcon}>
-              <Wallet size={24} color={COLORS.primary} />
+              <Wallet size={24} color={THEME_COLORS.primary} />
             </View>
           </View>
 
           <View style={styles.revenueBottom}>
-            <TrendingUp size={14} color={COLORS.status.success} />
+            <TrendingUp size={14} color={THEME_COLORS.status.success} />
             <Text style={styles.revenueChange}>+12.5% from last month</Text>
           </View>
         </TouchableOpacity>
@@ -290,8 +274,8 @@ const DashboardScreen = () => {
             title="Active Bookings"
             value={stats.activeBookings}
             subtitle="5 today"
-            icon={<Bike size={20} color={COLORS.primary} />}
-            bgColor={COLORS.accent.blueBg}
+            icon={<Bike size={20} color={THEME_COLORS.primary} />}
+            bgColor={THEME_COLORS.accent.blueBg}
             onPress={() => navigation.navigate("Bookings", { tab: "active" })}
           />
 
@@ -299,8 +283,8 @@ const DashboardScreen = () => {
             title="Pending Returns"
             value={stats.pendingReturns}
             subtitle="This week"
-            icon={<TimerReset size={20} color={COLORS.accent.orange} />}
-            bgColor={COLORS.accent.orangeBg}
+            icon={<TimerReset size={20} color={THEME_COLORS.accent.orange} />}
+            bgColor={THEME_COLORS.accent.orangeBg}
             onPress={() => navigation.navigate("Bookings", { tab: "active" })}
           />
 
@@ -308,75 +292,66 @@ const DashboardScreen = () => {
             title="New Leads"
             value={stats.newLeads}
             subtitle="Follow up"
-            icon={<Smartphone size={20} color={COLORS.accent.purple} />}
-            bgColor={COLORS.accent.purpleBg}
+            icon={<Smartphone size={20} color={THEME_COLORS.accent.purple} />}
+            bgColor={THEME_COLORS.accent.purpleBg}
             onPress={() => navigation.navigate("Leads")}
           />
         </View>
       </View>
 
-      {/* Actions */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Quick Actions</Text>
-
-        <ActionButton
-          title="Create Booking"
-          subtitle="Add new bike rental"
-          icon={<Plus size={20} color="#fff" />}
-          iconBg={COLORS.primary}
-          isPrimary={true}
-          onPress={() => navigation.navigate("AddBooking")}
-        />
-
-        <ActionButton
-          title="View Leads"
-          subtitle="Manage inquiries"
-          icon={<Eye size={20} color={COLORS.accent.blue} />}
-          iconBg={COLORS.accent.blueBg}
-          onPress={() => navigation.navigate("Leads")}
-        />
-
-        <ActionButton
-          title="Manage Fleet"
-          subtitle="Update inventory"
-          icon={<Bike size={20} color={COLORS.accent.purple} />}
-          iconBg={COLORS.accent.purpleBg}
-          onPress={() => navigation.navigate("Bikes")}
-        />
-      </View>
     </ScrollView>
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: THEME_COLORS.background,
+  },
   container: {
     flex: 1,
-    backgroundColor: COLORS.background,
+    backgroundColor: THEME_COLORS.background,
   },
   content: {
-    paddingBottom: SPACING.xxxl,
+    paddingBottom: SPACING.xxl,
   },
 
   // Header - clean and minimal
   header: {
-    backgroundColor: COLORS.surface,
-    paddingTop: Platform.OS === "ios" ? 60 : SPACING.xxxl,
+    backgroundColor: THEME_COLORS.surface,
+    paddingTop: SPACING.lg,
     paddingBottom: SPACING.xl,
     paddingHorizontal: SPACING.xl,
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.border.light,
+    borderBottomColor: THEME_COLORS.border.light,
+  },
+  headerTop: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "flex-start",
+    marginBottom: SPACING.md,
+  },
+  logoutButton: {
+    width: 40,
+    height: 40,
+    borderRadius: RADIUS.md,
+    backgroundColor: THEME_COLORS.backgroundSecondary,
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1,
+    borderColor: THEME_COLORS.border.medium,
   },
   greeting: {
     fontSize: TYPOGRAPHY.sm,
-    color: COLORS.text.secondary,
+    color: THEME_COLORS.text.secondary,
     marginBottom: 4,
     fontWeight: "500",
   },
   name: {
     fontSize: TYPOGRAPHY.xxl,
-    color: COLORS.text.primary,
+    color: THEME_COLORS.text.primary,
     fontWeight: "700",
-    marginBottom: SPACING.md,
     letterSpacing: -0.5,
   },
   timeInfo: {
@@ -390,7 +365,7 @@ const styles = StyleSheet.create({
   },
   timeText: {
     fontSize: TYPOGRAPHY.xs,
-    color: COLORS.text.secondary,
+    color: THEME_COLORS.text.secondary,
     fontWeight: "500",
   },
 
@@ -402,17 +377,17 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: TYPOGRAPHY.md,
     fontWeight: "600",
-    color: COLORS.text.primary,
+    color: THEME_COLORS.text.primary,
     marginBottom: SPACING.lg,
   },
 
   // Revenue card - clean, not flashy
   revenueCard: {
-    backgroundColor: COLORS.surface,
+    backgroundColor: THEME_COLORS.surface,
     borderRadius: RADIUS.lg,
     padding: SPACING.xl,
     borderWidth: 1,
-    borderColor: COLORS.border.light,
+    borderColor: THEME_COLORS.border.light,
     ...ELEVATION.sm,
   },
   revenueTop: {
@@ -423,21 +398,21 @@ const styles = StyleSheet.create({
   },
   revenueLabel: {
     fontSize: TYPOGRAPHY.sm,
-    color: COLORS.text.secondary,
+    color: THEME_COLORS.text.secondary,
     marginBottom: 6,
     fontWeight: "500",
   },
   revenueAmount: {
     fontSize: TYPOGRAPHY.xxxl,
     fontWeight: "700",
-    color: COLORS.text.primary,
+    color: THEME_COLORS.text.primary,
     letterSpacing: -0.5,
   },
   revenueIcon: {
     width: 48,
     height: 48,
     borderRadius: RADIUS.md,
-    backgroundColor: COLORS.accent.blueBg,
+    backgroundColor: THEME_COLORS.accent.blueBg,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -447,11 +422,11 @@ const styles = StyleSheet.create({
     gap: 6,
     paddingTop: SPACING.md,
     borderTopWidth: 1,
-    borderTopColor: COLORS.border.light,
+    borderTopColor: THEME_COLORS.border.light,
   },
   revenueChange: {
     fontSize: TYPOGRAPHY.sm,
-    color: COLORS.status.success,
+    color: THEME_COLORS.status.success,
     fontWeight: "600",
   },
 
@@ -460,13 +435,13 @@ const styles = StyleSheet.create({
     gap: SPACING.md,
   },
   statCard: {
-    backgroundColor: COLORS.surface,
+    backgroundColor: THEME_COLORS.surface,
     borderRadius: RADIUS.md,
     padding: SPACING.lg,
     flexDirection: "row",
     alignItems: "center",
     borderWidth: 1,
-    borderColor: COLORS.border.light,
+    borderColor: THEME_COLORS.border.light,
     ...ELEVATION.sm,
   },
   statIconBox: {
@@ -482,37 +457,37 @@ const styles = StyleSheet.create({
   },
   statLabel: {
     fontSize: TYPOGRAPHY.xs,
-    color: COLORS.text.secondary,
+    color: THEME_COLORS.text.secondary,
     marginBottom: 4,
     fontWeight: "500",
   },
   statNumber: {
     fontSize: TYPOGRAPHY.xl,
     fontWeight: "700",
-    color: COLORS.text.primary,
+    color: THEME_COLORS.text.primary,
     marginBottom: 2,
   },
   statSubtitle: {
     fontSize: TYPOGRAPHY.xs,
-    color: COLORS.text.tertiary,
+    color: THEME_COLORS.text.tertiary,
     fontWeight: "500",
   },
 
   // Action buttons - clean
   actionBtn: {
-    backgroundColor: COLORS.surface,
+    backgroundColor: THEME_COLORS.surface,
     borderRadius: RADIUS.md,
     padding: SPACING.lg,
     flexDirection: "row",
     alignItems: "center",
     marginBottom: SPACING.md,
     borderWidth: 1,
-    borderColor: COLORS.border.light,
+    borderColor: THEME_COLORS.border.light,
     ...ELEVATION.sm,
   },
   actionBtnPrimary: {
-    backgroundColor: COLORS.primary,
-    borderColor: COLORS.primary,
+    backgroundColor: THEME_COLORS.primary,
+    borderColor: THEME_COLORS.primary,
   },
   actionIcon: {
     width: 40,
@@ -528,7 +503,7 @@ const styles = StyleSheet.create({
   actionTitle: {
     fontSize: TYPOGRAPHY.base,
     fontWeight: "600",
-    color: COLORS.text.primary,
+    color: THEME_COLORS.text.primary,
     marginBottom: 2,
   },
   actionTitlePrimary: {
@@ -536,7 +511,7 @@ const styles = StyleSheet.create({
   },
   actionSubtitle: {
     fontSize: TYPOGRAPHY.xs,
-    color: COLORS.text.tertiary,
+    color: THEME_COLORS.text.tertiary,
     fontWeight: "500",
   },
 });

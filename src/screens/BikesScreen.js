@@ -9,60 +9,50 @@ import {
   Alert,
   Platform,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { useNavigation } from "@react-navigation/native";
 import { Plus, Search, Filter, Bike, Grid, List } from "lucide-react-native";
 import BikeCard from "../components/BikeCard";
 import { bikesService } from "../services/dataService";
 
-// Professional Colors
+import { COLORS as THEME_COLORS, SPACING as THEME_SPACING, FONT_SIZES as THEME_FONT_SIZES, BORDER_RADIUS as THEME_BORDER_RADIUS } from "../constants/theme";
+
+// Professional Colors - using new theme
 const COLORS = {
-  primary: "#FF6F00",
-  background: "#f8f9fb",
-  surface: "#ffffff",
+  primary: THEME_COLORS.primary,
+  background: THEME_COLORS.background,
+  surface: THEME_COLORS.surface,
 
   text: {
-    primary: "#0f172a",
-    secondary: "#475569",
+    primary: THEME_COLORS.textPrimary,
+    secondary: THEME_COLORS.textSecondary,
     tertiary: "#94a3b8",
   },
 
   border: {
-    light: "#e2e8f0",
-    medium: "#cbd5e1",
+    light: THEME_COLORS.borderLight,
+    medium: THEME_COLORS.border,
   },
 
   status: {
-    available: "#059669",
+    available: THEME_COLORS.success,
     availableBg: "#ecfdf5",
-    rented: "#d97706",
+    rented: THEME_COLORS.warning,
     rentedBg: "#fef3c7",
-    maintenance: "#dc2626",
+    maintenance: THEME_COLORS.error,
     maintenanceBg: "#fef2f2",
   },
 };
 
-const SPACING = {
-  xs: 4,
-  sm: 8,
-  md: 12,
-  lg: 16,
-  xl: 20,
-  xxl: 28,
-};
-
+const SPACING = THEME_SPACING;
 const TYPOGRAPHY = {
-  xs: 11,
-  sm: 13,
-  base: 15,
-  md: 17,
-  lg: 19,
+  xs: THEME_FONT_SIZES.xs,
+  sm: THEME_FONT_SIZES.sm,
+  base: THEME_FONT_SIZES.md,
+  md: THEME_FONT_SIZES.lg,
+  lg: THEME_FONT_SIZES.xl,
 };
-
-const RADIUS = {
-  sm: 6,
-  md: 10,
-  lg: 14,
-};
+const RADIUS = THEME_BORDER_RADIUS;
 
 // Stats Summary Component
 const StatsSummary = ({ bikes }) => {
@@ -138,7 +128,7 @@ const BikesScreen = () => {
   };
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['top']}>
       {/* Header */}
       <View style={styles.header}>
         <View>
@@ -206,7 +196,7 @@ const BikesScreen = () => {
           <Plus size={24} color="#fff" />
         </TouchableOpacity>
       )}
-    </View>
+    </SafeAreaView>
   );
 };
 
@@ -219,7 +209,7 @@ const styles = StyleSheet.create({
   // Header
   header: {
     backgroundColor: COLORS.surface,
-    paddingTop: Platform.OS === "ios" ? 60 : SPACING.xxl,
+    paddingTop: SPACING.lg,
     paddingBottom: SPACING.lg,
     paddingHorizontal: SPACING.xl,
     borderBottomWidth: 1,

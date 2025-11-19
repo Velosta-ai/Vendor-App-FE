@@ -8,33 +8,35 @@ import {
 } from "react-native";
 import { TrendingUp, TrendingDown, Minus } from "lucide-react-native";
 
-// Professional Colors (matching BikesScreen)
+import { COLORS as THEME_COLORS } from "../constants/theme";
+
+// Professional Colors - using new theme
 const COLORS = {
-  primary: "#FF6F00",
-  background: "#f8f9fb",
-  surface: "#ffffff",
+  primary: THEME_COLORS.primary,
+  background: THEME_COLORS.background,
+  surface: THEME_COLORS.surface,
 
   text: {
-    primary: "#0f172a",
-    secondary: "#475569",
+    primary: THEME_COLORS.textPrimary,
+    secondary: THEME_COLORS.textSecondary,
     tertiary: "#94a3b8",
   },
 
   border: {
-    light: "#e2e8f0",
-    medium: "#cbd5e1",
+    light: THEME_COLORS.borderLight,
+    medium: THEME_COLORS.border,
   },
 
   accent: {
-    blue: "#FF6F00",
-    blueBg: "#FFF3E0",
-    green: "#059669",
+    blue: THEME_COLORS.primary,
+    blueBg: THEME_COLORS.backgroundSecondary,
+    green: THEME_COLORS.success,
     greenBg: "#ecfdf5",
-    orange: "#d97706",
+    orange: THEME_COLORS.warning,
     orangeBg: "#fef3c7",
     purple: "#7c3aed",
     purpleBg: "#f5f3ff",
-    red: "#dc2626",
+    red: THEME_COLORS.error,
     redBg: "#fef2f2",
   },
 };

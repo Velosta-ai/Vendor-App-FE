@@ -10,6 +10,7 @@ import {
   Alert,
   KeyboardAvoidingView,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import {
@@ -18,62 +19,49 @@ import {
   Phone,
   Bike,
   Calendar,
-  DollarSign,
   CheckCircle2,
   ChevronDown,
   Calculator,
   IndianRupee,
 } from "lucide-react-native";
 import { bookingsService, bikesService } from "../services/dataService";
+import { COLORS as THEME_COLORS, SPACING as THEME_SPACING, FONT_SIZES as THEME_FONT_SIZES, BORDER_RADIUS as THEME_BORDER_RADIUS } from "../constants/theme";
 
 //
 // THEME
 //
 const COLORS = {
-  primary: "#FF6F00",
-  background: "#f8f9fb",
-  surface: "#ffffff",
+  primary: THEME_COLORS.primary,
+  background: THEME_COLORS.background,
+  surface: THEME_COLORS.surface,
 
   text: {
-    primary: "#0f172a",
-    secondary: "#475569",
+    primary: THEME_COLORS.textPrimary,
+    secondary: THEME_COLORS.textSecondary,
     tertiary: "#94a3b8",
   },
 
   border: {
-    light: "#e2e8f0",
-    medium: "#cbd5e1",
-    focus: "#FF6F00",
+    light: THEME_COLORS.borderLight,
+    medium: THEME_COLORS.border,
+    focus: THEME_COLORS.primary,
   },
 
-  success: "#059669",
+  success: THEME_COLORS.success,
   successBg: "#ecfdf5",
-  warning: "#d97706",
+  warning: THEME_COLORS.warning,
   warningBg: "#fef3c7",
 };
 
-const SPACING = {
-  xs: 4,
-  sm: 8,
-  md: 12,
-  lg: 16,
-  xl: 20,
-  xxl: 28,
-};
-
+const SPACING = THEME_SPACING;
 const TYPO = {
-  xs: 11,
-  sm: 13,
-  base: 15,
-  md: 17,
-  lg: 19,
+  xs: THEME_FONT_SIZES.xs,
+  sm: THEME_FONT_SIZES.sm,
+  base: THEME_FONT_SIZES.md,
+  md: THEME_FONT_SIZES.lg,
+  lg: THEME_FONT_SIZES.xl,
 };
-
-const RADIUS = {
-  sm: 6,
-  md: 10,
-  lg: 14,
-};
+const RADIUS = THEME_BORDER_RADIUS;
 
 //
 // INPUT FIELD (fixed)
@@ -192,7 +180,11 @@ const AddBookingScreen = () => {
   const [customerName, setCustomerName] = useState(
     prefillData.customerName || ""
   );
-  const [phone, setPhone] = useState(prefillData.phone || "");
+  const [phone, setPhone] = useState(() => {
+    const phoneValue = prefillData.phone || "";
+    // Remove +91 prefix if present for display
+    return phoneValue.replace(/^\+91\s*/, "");
+  });
 
   const [selectedBike, setSelectedBike] = useState(null);
   const [bikes, setBikes] = useState([]);
@@ -240,13 +232,16 @@ const AddBookingScreen = () => {
     if (!editBooking) return;
 
     setCustomerName(editBooking.customerName);
-    setPhone(editBooking.phone);
+    const phoneValue = editBooking.phone || "";
+    // Remove +91 prefix if present for display
+    const phoneWithoutPrefix = phoneValue.replace(/^\+91\s*/, "");
+    setPhone(phoneWithoutPrefix);
 
     setStartDate(new Date(editBooking.startDate));
     setEndDate(new Date(editBooking.endDate));
 
-    setTotalAmount(String(editBooking.totalAmount));
-    setPaidAmount(String(editBooking.paidAmount));
+    setTotalAmount(String(editBooking.totalAmount || 0));
+    setPaidAmount(String(editBooking.paidAmount || 0));
     setNotes(editBooking.notes || "");
 
     setSelectedBike({
@@ -274,8 +269,9 @@ const AddBookingScreen = () => {
     const e = {};
 
     if (!customerName.trim()) e.customerName = "Customer name is required";
-    if (!phone.trim()) e.phone = "Phone number is required";
-    else if (phone.length < 10) e.phone = "Enter valid phone number";
+    const fullPhone = phone.trim();
+    if (!fullPhone) e.phone = "Phone number is required";
+    else if (fullPhone.length < 10) e.phone = "Enter valid phone number";
 
     if (!selectedBike) e.bike = "Please select a bike";
 
@@ -296,7 +292,7 @@ const AddBookingScreen = () => {
 
     const payload = {
       customerName: customerName.trim(),
-      phone: phone.trim(),
+      phone: `+91${phone.trim()}`,
       bikeId: selectedBike.id,
       startDate: startDate.toISOString().split("T")[0],
       endDate: endDate.toISOString().split("T")[0],
@@ -342,13 +338,14 @@ const AddBookingScreen = () => {
   // UI
   //
   return (
-    <KeyboardAvoidingView
-      style={styles.container}
-      behavior={Platform.OS === "ios" ? "padding" : undefined}
-      keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 0}
-    >
-      {/* HEADER */}
-      <View style={styles.header}>
+    <SafeAreaView style={styles.safeArea} edges={['top']}>
+      <KeyboardAvoidingView
+        style={styles.container}
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 0}
+      >
+        {/* HEADER */}
+        <View style={styles.header}>
         <TouchableOpacity
           style={styles.backButton}
           onPress={() => navigation.goBack()}
@@ -387,15 +384,35 @@ const AddBookingScreen = () => {
             error={errors.customerName}
           />
 
-          <InputField
-            label="Phone Number *"
-            value={phone}
-            onChangeText={setPhone}
-            placeholder="+91 98765 43210"
-            keyboardType="phone-pad"
-            icon={<Phone size={18} color={COLORS.text.tertiary} />}
-            error={errors.phone}
-          />
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>Phone Number *</Text>
+            <View style={styles.phoneInputContainer}>
+              <View style={styles.phonePrefix}>
+                <Text style={styles.phonePrefixText}>+91</Text>
+              </View>
+              <View style={[styles.inputContainer, errors.phone && styles.inputContainerError]}>
+                <View style={styles.inputIcon}>
+                  <Phone size={18} color={COLORS.text.tertiary} />
+                </View>
+                <TextInput
+                  style={styles.input}
+                  value={phone}
+                  onChangeText={(text) => {
+                    // Only allow digits
+                    const digitsOnly = text.replace(/\D/g, "");
+                    if (digitsOnly.length <= 10) {
+                      setPhone(digitsOnly);
+                      if (errors.phone) setErrors({ ...errors, phone: null });
+                    }
+                  }}
+                  placeholder="98765 43210"
+                  placeholderTextColor={COLORS.text.tertiary}
+                  keyboardType="phone-pad"
+                />
+              </View>
+            </View>
+            {errors.phone && <Text style={styles.errorText}>{errors.phone}</Text>}
+          </View>
         </View>
 
         {/* BIKE CARD */}
@@ -512,17 +529,19 @@ const AddBookingScreen = () => {
             error={errors.paidAmount}
           />
 
-          {totalAmount && paidAmount && (
+          {(totalAmount || paidAmount) && (
             <View style={styles.paymentSummary}>
               <View style={styles.summaryRow}>
                 <Text style={styles.summaryLabel}>Total</Text>
-                <Text style={styles.summaryValue}>₹{totalAmount}</Text>
+                <Text style={styles.summaryValue}>
+                  ₹{Number(totalAmount || 0).toLocaleString("en-IN")}
+                </Text>
               </View>
 
               <View style={styles.summaryRow}>
                 <Text style={styles.summaryLabel}>Paid</Text>
                 <Text style={[styles.summaryValue, { color: COLORS.success }]}>
-                  ₹{paidAmount}
+                  ₹{Number(paidAmount || 0).toLocaleString("en-IN")}
                 </Text>
               </View>
 
@@ -536,7 +555,7 @@ const AddBookingScreen = () => {
                     },
                   ]}
                 >
-                  ₹{getBalance()}
+                  ₹{getBalance().toLocaleString("en-IN")}
                 </Text>
               </View>
             </View>
@@ -567,7 +586,8 @@ const AddBookingScreen = () => {
           </Text>
         </TouchableOpacity>
       </ScrollView>
-    </KeyboardAvoidingView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 };
 
@@ -575,11 +595,15 @@ const AddBookingScreen = () => {
 // STYLES
 //
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: COLORS.background,
+  },
   container: { flex: 1, backgroundColor: COLORS.background },
 
   header: {
     flexDirection: "row",
-    paddingTop: Platform.OS === "ios" ? 60 : 40,
+    paddingTop: SPACING.lg,
     paddingBottom: SPACING.lg,
     paddingHorizontal: SPACING.xl,
     backgroundColor: COLORS.surface,
@@ -660,6 +684,25 @@ const styles = StyleSheet.create({
     paddingVertical: SPACING.md,
     paddingRight: SPACING.md,
     fontSize: TYPO.base,
+    color: COLORS.text.primary,
+  },
+  phoneInputContainer: {
+    flexDirection: "row",
+    gap: SPACING.sm,
+  },
+  phonePrefix: {
+    backgroundColor: COLORS.background,
+    borderWidth: 1,
+    borderColor: COLORS.border.light,
+    borderRadius: RADIUS.md,
+    paddingHorizontal: SPACING.md,
+    justifyContent: "center",
+    alignItems: "center",
+    minWidth: 60,
+  },
+  phonePrefixText: {
+    fontSize: TYPO.base,
+    fontWeight: "600",
     color: COLORS.text.primary,
   },
   errorText: {
