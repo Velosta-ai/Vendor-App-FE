@@ -29,7 +29,7 @@ const COLORS = {
 
   status: {
     active: THEME_COLORS.info,
-    activeBg: "#e0f2fe",
+    activeBg: "#08ad37ff",
     upcoming: THEME_COLORS.warning,
     upcomingBg: "#fef3c7",
     returned: THEME_COLORS.success,
@@ -68,7 +68,7 @@ const BookingCard = ({
       case "ACTIVE":
         return {
           label: "Active",
-          color: COLORS.status.active,
+          color: "white",
           bg: COLORS.status.activeBg,
         };
       case "UPCOMING":
@@ -109,7 +109,6 @@ const BookingCard = ({
     const days = Math.ceil((end - start) / (1000 * 60 * 60 * 24));
     return `${days} ${days === 1 ? "day" : "days"}`;
   };
-
   return (
     <View style={styles.card}>
       {/* Header */}
@@ -119,9 +118,9 @@ const BookingCard = ({
             <Bike size={20} color={COLORS.primary} />
           </View>
           <View style={styles.headerInfo}>
-            <Text style={styles.bikeName}>{booking.bikeName}</Text>
+            <Text style={styles.bikeName}>{booking.bike.name}</Text>
             <Text style={styles.bikeModel}>
-              {booking.bikeModel || "Standard"}
+              {booking.bike.registrationNumber || "Standard"}
             </Text>
           </View>
         </View>
@@ -256,7 +255,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: RADIUS.sm,
-    backgroundColor: COLORS.status.activeBg,
+    borderColor: COLORS.primary,
     alignItems: "center",
     justifyContent: "center",
   },

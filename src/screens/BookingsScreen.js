@@ -33,13 +33,22 @@ import { Swipeable } from "react-native-gesture-handler";
 import BookingCard from "../components/BookingCard";
 import { bookingsService } from "../services/dataService";
 
-import { COLORS as THEME_COLORS, SPACING, FONT_SIZES, BORDER_RADIUS } from "../constants/theme";
+import {
+  COLORS as THEME_COLORS,
+  SPACING,
+  FONT_SIZES,
+  BORDER_RADIUS,
+} from "../constants/theme";
 
 const COLORS = {
   primary: THEME_COLORS.primary,
   background: THEME_COLORS.background,
   surface: THEME_COLORS.surface,
-  text: { primary: THEME_COLORS.textPrimary, secondary: THEME_COLORS.textSecondary, tertiary: "#94a3b8" },
+  text: {
+    primary: THEME_COLORS.textPrimary,
+    secondary: THEME_COLORS.textSecondary,
+    tertiary: "#94a3b8",
+  },
   border: { light: THEME_COLORS.borderLight, medium: THEME_COLORS.border },
 };
 
@@ -105,7 +114,10 @@ const BookingsScreen = () => {
     }
 
     if (amount > balance) {
-      showError("Error", `Amount cannot exceed balance of ₹${balance.toLocaleString("en-IN")}`);
+      showError(
+        "Error",
+        `Amount cannot exceed balance of ₹${balance.toLocaleString("en-IN")}`
+      );
       return;
     }
 
@@ -348,6 +360,7 @@ const BookingsScreen = () => {
                 booking={item}
                 onSendConfirmation={() => handleSendConfirmation(item)}
                 hideActions
+                onMarkReturned={() => handleMarkReturned(item)}
               />
             </TouchableOpacity>
           </Swipeable>
@@ -399,15 +412,19 @@ const BookingsScreen = () => {
                 <View style={styles.balanceInfo}>
                   <Text style={styles.balanceLabel}>Current Balance</Text>
                   <Text style={styles.balanceAmount}>
-                    ₹{Math.max(
+                    ₹
+                    {Math.max(
                       0,
-                      (selectedBooking.totalAmount || 0) - (selectedBooking.paidAmount || 0)
+                      (selectedBooking.totalAmount || 0) -
+                        (selectedBooking.paidAmount || 0)
                     ).toLocaleString("en-IN")}
                   </Text>
                 </View>
 
                 <View style={styles.paymentInputGroup}>
-                  <Text style={styles.paymentLabel}>Additional Payment (₹)</Text>
+                  <Text style={styles.paymentLabel}>
+                    Additional Payment (₹)
+                  </Text>
                   <View style={styles.paymentInputContainer}>
                     <View style={styles.paymentInputIcon}>
                       <IndianRupee size={20} color={COLORS.text.tertiary} />
@@ -436,21 +453,35 @@ const BookingsScreen = () => {
                   <View style={styles.summaryRow}>
                     <Text style={styles.summaryLabel}>Current Paid</Text>
                     <Text style={styles.summaryValue}>
-                      ₹{(selectedBooking.paidAmount || 0).toLocaleString("en-IN")}
+                      ₹
+                      {(selectedBooking.paidAmount || 0).toLocaleString(
+                        "en-IN"
+                      )}
                     </Text>
                   </View>
                   {additionalPayment && parseFloat(additionalPayment) > 0 && (
                     <View style={styles.summaryRow}>
                       <Text style={styles.summaryLabel}>Additional</Text>
-                      <Text style={[styles.summaryValue, { color: COLORS.primary }]}>
-                        +₹{parseFloat(additionalPayment || 0).toLocaleString("en-IN")}
+                      <Text
+                        style={[styles.summaryValue, { color: COLORS.primary }]}
+                      >
+                        +₹
+                        {parseFloat(additionalPayment || 0).toLocaleString(
+                          "en-IN"
+                        )}
                       </Text>
                     </View>
                   )}
                   <View style={[styles.summaryRow, styles.summaryRowTotal]}>
-                    <Text style={styles.summaryLabelTotal}>New Paid Amount</Text>
+                    <Text style={styles.summaryLabelTotal}>
+                      New Paid Amount
+                    </Text>
                     <Text style={styles.summaryValueTotal}>
-                      ₹{((selectedBooking.paidAmount || 0) + parseFloat(additionalPayment || 0)).toLocaleString("en-IN")}
+                      ₹
+                      {(
+                        (selectedBooking.paidAmount || 0) +
+                        parseFloat(additionalPayment || 0)
+                      ).toLocaleString("en-IN")}
                     </Text>
                   </View>
                 </View>
@@ -460,6 +491,7 @@ const BookingsScreen = () => {
                 <TouchableOpacity
                   style={styles.modalCancelButton}
                   onPress={() => {
+                    console.log("hooo");
                     setShowPaymentModal(false);
                     setSelectedBooking(null);
                   }}

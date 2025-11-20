@@ -2,50 +2,48 @@ import Constants from "expo-constants";
 import { Platform } from "react-native";
 
 const getApiUrl = () => {
-  // In development, use your Mac's IP
   if (__DEV__) {
-    return "https://vendor-app-be.vercel.app/api"; // your LAN IP
+    return "http://10.63.36.143:3001/api";
   }
-  // In production, use your production URL
-  return `https://vendor-app-be.vercel.app/api`;
+  return "https://vendor-app-be.vercel.app/api";
 };
 
 const API_BASE = getApiUrl();
 
-// Loading manager - will be set by the app
+// JWT token storage (set after login/register)
+let authToken = null;
+
+export const setAuthToken = (token) => {
+  authToken = token;
+};
+
+// Loading Manager
 let loadingManager = null;
 
 export const setLoadingManager = (manager) => {
   loadingManager = manager;
 };
 
-// Helper to wrap API calls with loading
 const withLoading = async (apiCall) => {
-  if (loadingManager) {
-    loadingManager.showLoading();
-  }
+  if (loadingManager) loadingManager.showLoading();
   try {
-    const result = await apiCall();
-    return result;
+    return await apiCall();
   } finally {
-    if (loadingManager) {
-      loadingManager.hideLoading();
-    }
+    if (loadingManager) loadingManager.hideLoading();
   }
 };
 
-/* ------------------------------ LEADS ------------------------------ */
-export const leadsService = {
-  async getLeads() {
-    return withLoading(async () => {
-      const res = await fetch(`${API_BASE}/leads`);
-      return await res.json();
-    });
-  },
+// AUTH HEADERS
+const authHeaders = () => ({
+  "Content-Type": "application/json",
+  Authorization: `Bearer ${authToken}`,
+});
 
-  async createLead(payload) {
+/* ------------------------------ AUTH ------------------------------ */
+export const authService = {
+  registerOrg(payload) {
     return withLoading(async () => {
-      const res = await fetch(`${API_BASE}/leads`, {
+      const res = await fetch(`${API_BASE}/auth/register-org`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
@@ -54,12 +52,35 @@ export const leadsService = {
     });
   },
 
-  async closeLead(id) {
+  joinOrg(payload) {
     return withLoading(async () => {
-      const res = await fetch(`${API_BASE}/leads/${id}`, {
-        method: "PATCH",
+      const res = await fetch(`${API_BASE}/auth/join-org`, {
+        method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status: "closed" }),
+        body: JSON.stringify(payload),
+      });
+      return await res.json();
+    });
+  },
+
+  login(payload) {
+    return withLoading(async () => {
+      const res = await fetch(`${API_BASE}/auth/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      return await res.json();
+    });
+  },
+};
+
+/* ------------------------------ DASHBOARD ------------------------------ */
+export const dashboardService = {
+  getDashboard() {
+    return withLoading(async () => {
+      const res = await fetch(`${API_BASE}/dashboard`, {
+        headers: authHeaders(),
       });
       return await res.json();
     });
@@ -70,14 +91,31 @@ export const leadsService = {
 export const bikesService = {
   async getBikes() {
     return withLoading(async () => {
-      const res = await fetch(`${API_BASE}/bikes`);
+      const res = await fetch(`${API_BASE}/bikes`, { headers: authHeaders() });
       return await res.json();
+    });
+  },
+  async getBikeAvailability(id) {
+    return withLoading(async () => {
+      const res = await fetch(`${API_BASE}/bikes/${id}/availability`, {
+        headers: authHeaders(),
+      });
+      // Defensive: check status and parse safely
+      const text = await res.text();
+      try {
+        return JSON.parse(text);
+      } catch (e) {
+        console.warn("Non-JSON availability response:", text);
+        throw new Error("Invalid response from server");
+      }
     });
   },
 
   async getBikeById(id) {
     return withLoading(async () => {
-      const res = await fetch(`${API_BASE}/bikes/${id}`);
+      const res = await fetch(`${API_BASE}/bikes/${id}`, {
+        headers: authHeaders(),
+      });
       return await res.json();
     });
   },
@@ -86,7 +124,7 @@ export const bikesService = {
     return withLoading(async () => {
       const res = await fetch(`${API_BASE}/bikes`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: authHeaders(),
         body: JSON.stringify(payload),
       });
       return await res.json();
@@ -97,7 +135,7 @@ export const bikesService = {
     return withLoading(async () => {
       const res = await fetch(`${API_BASE}/bikes/${id}`, {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
+        headers: authHeaders(),
         body: JSON.stringify(payload),
       });
       return await res.json();
@@ -108,16 +146,8 @@ export const bikesService = {
     return withLoading(async () => {
       const res = await fetch(`${API_BASE}/bikes/${id}/status`, {
         method: "PATCH",
-        headers: { "Content-Type": "application/json" },
+        headers: authHeaders(),
         body: JSON.stringify({ status }),
-      });
-      return await res.json();
-    });
-  },
-  async deleteBike(id) {
-    return withLoading(async () => {
-      const res = await fetch(`${API_BASE}/bikes/${id}`, {
-        method: "DELETE",
       });
       return await res.json();
     });
@@ -132,14 +162,16 @@ export const bookingsService = {
         ? `${API_BASE}/bookings?status=${status}`
         : `${API_BASE}/bookings`;
 
-      const res = await fetch(url);
+      const res = await fetch(url, { headers: authHeaders() });
       return await res.json();
     });
   },
 
   async getBookingById(id) {
     return withLoading(async () => {
-      const res = await fetch(`${API_BASE}/bookings/${id}`);
+      const res = await fetch(`${API_BASE}/bookings/${id}`, {
+        headers: authHeaders(),
+      });
       return await res.json();
     });
   },
@@ -148,7 +180,7 @@ export const bookingsService = {
     return withLoading(async () => {
       const res = await fetch(`${API_BASE}/bookings`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: authHeaders(),
         body: JSON.stringify(payload),
       });
       return await res.json();
@@ -159,7 +191,7 @@ export const bookingsService = {
     return withLoading(async () => {
       const res = await fetch(`${API_BASE}/bookings/${id}`, {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
+        headers: authHeaders(),
         body: JSON.stringify(payload),
       });
       return await res.json();
@@ -167,9 +199,11 @@ export const bookingsService = {
   },
 
   async markReturned(id) {
+    console.log("hooo");
     return withLoading(async () => {
       const res = await fetch(`${API_BASE}/bookings/${id}/returned`, {
         method: "PATCH",
+        headers: authHeaders(),
       });
       return await res.json();
     });
@@ -179,6 +213,7 @@ export const bookingsService = {
     return withLoading(async () => {
       const res = await fetch(`${API_BASE}/bookings/${id}`, {
         method: "DELETE",
+        headers: authHeaders(),
       });
       return await res.json();
     });
