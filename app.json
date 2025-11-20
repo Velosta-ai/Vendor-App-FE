@@ -1,7 +1,7 @@
 {
   "expo": {
     "android": {
-      "package": "com.saidevlpr.velostavendorcrm",
+      "package": "com.velosta.vendor",
       "splash": {
         "backgroundColor": "#FFFFFF",
         "resizeMode": "contain",

@@ -6,11 +6,11 @@ import {
   FlatList,
   TouchableOpacity,
   RefreshControl,
-  Alert,
   Platform,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useNavigation } from "@react-navigation/native";
+import { useAlert } from "../contexts/AlertContext";
 import { Plus, Search, Filter, Bike, Grid, List } from "lucide-react-native";
 import BikeCard from "../components/BikeCard";
 import { bikesService } from "../services/dataService";
@@ -99,6 +99,7 @@ const StatsSummary = ({ bikes }) => {
 
 const BikesScreen = () => {
   const navigation = useNavigation();
+  const { showError } = useAlert();
   const [bikes, setBikes] = useState([]);
   const [refreshing, setRefreshing] = useState(false);
   const [viewMode, setViewMode] = useState("list"); // 'list' or 'grid'
@@ -113,7 +114,7 @@ const BikesScreen = () => {
       setBikes(data);
     } catch (error) {
       console.error("Error loading bikes:", error);
-      Alert.alert("Error", "Failed to load bikes");
+      showError("Error", "Failed to load bikes");
     }
   };
 

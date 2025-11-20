@@ -14,6 +14,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRoute, useNavigation } from "@react-navigation/native";
+import { useAlert } from "../contexts/AlertContext";
 import {
   Edit3,
   Trash2,
@@ -37,6 +38,7 @@ const COLORS = {
 const BookingDetailsScreen = () => {
   const route = useRoute();
   const navigation = useNavigation();
+  const { showSuccess, showError, showWarning } = useAlert();
   const { id } = route.params || {};
   const [booking, setBooking] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -50,7 +52,7 @@ const BookingDetailsScreen = () => {
       setBooking(data);
     } catch (err) {
       console.error(err);
-      Alert.alert("Error", "Failed to load booking");
+      showError("Error", "Failed to load booking");
       navigation.goBack();
     } finally {
       setLoading(false);
@@ -86,11 +88,11 @@ const BookingDetailsScreen = () => {
       // Mark as returned
       await bookingsService.markReturned(id);
       setShowPaymentModal(false);
-      Alert.alert("Success", "Marked as returned");
+      showSuccess("Success", "Marked as returned");
       loadBooking();
     } catch (err) {
       console.error(err);
-      Alert.alert("Error", "Failed to mark returned");
+      showError("Error", "Failed to mark returned");
     }
   };
 
@@ -102,12 +104,12 @@ const BookingDetailsScreen = () => {
     );
     
     if (amount < 0) {
-      Alert.alert("Error", "Amount cannot be negative");
+      showError("Error", "Amount cannot be negative");
       return;
     }
     
     if (amount > balance) {
-      Alert.alert("Error", `Amount cannot exceed balance of ₹${balance.toLocaleString("en-IN")}`);
+      showError("Error", `Amount cannot exceed balance of ₹${balance.toLocaleString("en-IN")}`);
       return;
     }
     
@@ -115,7 +117,7 @@ const BookingDetailsScreen = () => {
   };
 
   const handleDelete = () => {
-    Alert.alert("Delete booking", "This cannot be undone. Continue?", [
+    showWarning("Delete booking", "This cannot be undone. Continue?", [
       { text: "Cancel", style: "cancel" },
       {
         text: "Delete",
@@ -123,11 +125,11 @@ const BookingDetailsScreen = () => {
         onPress: async () => {
           try {
             await bookingsService.deleteBooking(id);
-            Alert.alert("Deleted", "Booking deleted");
+            showSuccess("Deleted", "Booking deleted");
             navigation.goBack();
           } catch (err) {
             console.error(err);
-            Alert.alert("Error", "Failed to delete");
+            showError("Error", "Failed to delete");
           }
         },
       },
@@ -144,7 +146,7 @@ const BookingDetailsScreen = () => {
     const url = `https://wa.me/${phone}?text=${encodeURIComponent(msg)}`;
     Linking.canOpenURL(url).then((supported) => {
       if (supported) Linking.openURL(url);
-      else Alert.alert("Error", "Cannot open WhatsApp");
+      else showError("Error", "Cannot open WhatsApp");
     });
   };
 

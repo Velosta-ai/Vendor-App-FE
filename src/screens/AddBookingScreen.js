@@ -7,11 +7,11 @@ import {
   TextInput,
   TouchableOpacity,
   Platform,
-  Alert,
   KeyboardAvoidingView,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useNavigation, useRoute } from "@react-navigation/native";
+import { useAlert } from "../contexts/AlertContext";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import {
   X,
@@ -170,6 +170,7 @@ const BikeOption = ({ bike, onSelect, isSelected }) => (
 const AddBookingScreen = () => {
   const navigation = useNavigation();
   const route = useRoute();
+  const { showSuccess, showError } = useAlert();
 
   const editBooking = route.params?.editBooking || null;
   const prefillData = route.params?.prefillData || {};
@@ -221,7 +222,7 @@ const AddBookingScreen = () => {
 
       setBikes(available);
     } catch (err) {
-      Alert.alert("Error", "Failed to load bikes");
+      showError("Error", "Failed to load bikes");
     }
   };
 
@@ -304,17 +305,17 @@ const AddBookingScreen = () => {
     try {
       if (editBooking) {
         await bookingsService.updateBooking(editBooking.id, payload);
-        Alert.alert("Success", "Booking updated", [
+        showSuccess("Success", "Booking updated", [
           { text: "OK", onPress: () => navigation.goBack() },
         ]);
       } else {
         await bookingsService.createBooking(payload);
-        Alert.alert("Success", "Booking created", [
+        showSuccess("Success", "Booking created", [
           { text: "OK", onPress: () => navigation.goBack() },
         ]);
       }
     } catch (e) {
-      Alert.alert("Error", "Failed to save booking");
+      showError("Error", "Failed to save booking");
     }
   };
 
@@ -390,13 +391,14 @@ const AddBookingScreen = () => {
               <View style={styles.phonePrefix}>
                 <Text style={styles.phonePrefixText}>+91</Text>
               </View>
-              <View style={[styles.inputContainer, errors.phone && styles.inputContainerError]}>
+              <View style={[styles.phoneInputWrapper, errors.phone && styles.inputContainerError]}>
                 <View style={styles.inputIcon}>
                   <Phone size={18} color={COLORS.text.tertiary} />
                 </View>
                 <TextInput
                   style={styles.input}
                   value={phone}
+                  editable={true}
                   onChangeText={(text) => {
                     // Only allow digits
                     const digitsOnly = text.replace(/\D/g, "");
@@ -689,6 +691,7 @@ const styles = StyleSheet.create({
   phoneInputContainer: {
     flexDirection: "row",
     gap: SPACING.sm,
+    alignItems: "stretch",
   },
   phonePrefix: {
     backgroundColor: COLORS.background,
@@ -699,6 +702,15 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     minWidth: 60,
+  },
+  phoneInputWrapper: {
+    flex: 1,
+    flexDirection: "row",
+    borderWidth: 1,
+    borderColor: COLORS.border.light,
+    borderRadius: RADIUS.md,
+    backgroundColor: COLORS.background,
+    alignItems: "center",
   },
   phonePrefixText: {
     fontSize: TYPO.base,

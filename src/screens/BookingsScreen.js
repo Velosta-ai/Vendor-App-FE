@@ -8,7 +8,6 @@ import {
   TouchableOpacity,
   RefreshControl,
   Linking,
-  Alert,
   Platform,
   StatusBar,
   Modal,
@@ -17,6 +16,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import { useFocusEffect } from "@react-navigation/native";
+import { useAlert } from "../contexts/AlertContext";
 import {
   Plus,
   CheckCircle2,
@@ -46,6 +46,7 @@ const COLORS = {
 const BookingsScreen = () => {
   const navigation = useNavigation();
   const route = useRoute();
+  const { showSuccess, showError, showWarning } = useAlert();
   const [activeTab, setActiveTab] = useState(route.params?.tab || "active");
   const [bookings, setBookings] = useState({
     active: [],
@@ -65,7 +66,7 @@ const BookingsScreen = () => {
       setBookings({ active, upcoming, returned });
     } catch (error) {
       console.error("Error loading bookings:", error);
-      Alert.alert("Error", "Failed to load bookings");
+      showError("Error", "Failed to load bookings");
     }
   };
 
@@ -99,12 +100,12 @@ const BookingsScreen = () => {
     );
 
     if (amount < 0) {
-      Alert.alert("Error", "Amount cannot be negative");
+      showError("Error", "Amount cannot be negative");
       return;
     }
 
     if (amount > balance) {
-      Alert.alert("Error", `Amount cannot exceed balance of ₹${balance.toLocaleString("en-IN")}`);
+      showError("Error", `Amount cannot exceed balance of ₹${balance.toLocaleString("en-IN")}`);
       return;
     }
 
@@ -122,7 +123,7 @@ const BookingsScreen = () => {
       // Mark as returned
       const res = await bookingsService.markReturned(selectedBooking.id);
       if (res?.error) {
-        Alert.alert("Error", res.error);
+        showError("Error", res.error);
         return;
       }
 
@@ -130,15 +131,15 @@ const BookingsScreen = () => {
       setSelectedBooking(null);
       setAdditionalPayment("");
       await loadBookings();
-      Alert.alert("Success", "Marked as returned");
+      showSuccess("Success", "Marked as returned");
     } catch (err) {
       console.error(err);
-      Alert.alert("Error", "Failed to mark as returned");
+      showError("Error", "Failed to mark as returned");
     }
   };
 
   const handleDelete = async (booking) => {
-    Alert.alert(
+    showWarning(
       "Delete booking",
       `Delete booking for ${booking.customerName}?`,
       [
@@ -150,14 +151,14 @@ const BookingsScreen = () => {
             try {
               const res = await bookingsService.deleteBooking(booking.id);
               if (res?.error) {
-                Alert.alert("Error", res.error);
+                showError("Error", res.error);
                 return;
               }
               await loadBookings();
-              Alert.alert("Deleted", "Booking deleted successfully");
+              showSuccess("Deleted", "Booking deleted successfully");
             } catch (err) {
               console.error(err);
-              Alert.alert("Error", "Failed to delete booking");
+              showError("Error", "Failed to delete booking");
             }
           },
         },
@@ -205,7 +206,7 @@ const BookingsScreen = () => {
     const url = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
     Linking.canOpenURL(url).then((supported) => {
       if (supported) Linking.openURL(url);
-      else Alert.alert("Error", "Cannot open WhatsApp");
+      else showError("Error", "Cannot open WhatsApp");
     });
   };
 

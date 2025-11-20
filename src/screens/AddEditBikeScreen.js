@@ -7,12 +7,12 @@ import {
   TextInput,
   TouchableOpacity,
   Switch,
-  Alert,
   Platform,
   KeyboardAvoidingView,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useNavigation, useRoute } from "@react-navigation/native";
+import { useAlert } from "../contexts/AlertContext";
 import {
   Save,
   X,
@@ -124,6 +124,7 @@ const ToggleField = ({ label, description, value, onValueChange }) => {
 const AddEditBikeScreen = () => {
   const navigation = useNavigation();
   const route = useRoute();
+  const { showSuccess, showError, showWarning } = useAlert();
   const editBike = route.params?.bike;
   const isEditMode = !!editBike;
 
@@ -176,22 +177,22 @@ const AddEditBikeScreen = () => {
     try {
       if (isEditMode) {
         await bikesService.updateBike(editBike.id, bikeData);
-        Alert.alert("Success", "Bike updated", [
+        showSuccess("Success", "Bike updated", [
           { text: "OK", onPress: () => navigation.goBack() },
         ]);
       } else {
         await bikesService.createBike(bikeData);
-        Alert.alert("Success", "Bike added", [
+        showSuccess("Success", "Bike added", [
           { text: "OK", onPress: () => navigation.goBack() },
         ]);
       }
     } catch (e) {
-      Alert.alert("Error", "Failed to save bike");
+      showError("Error", "Failed to save bike");
     }
   };
 
   const handleDelete = () => {
-    Alert.alert("Delete Bike", "Are you sure?", [
+    showWarning("Delete Bike", "Are you sure?", [
       { text: "Cancel", style: "cancel" },
       {
         text: "Delete",
@@ -199,11 +200,11 @@ const AddEditBikeScreen = () => {
         onPress: async () => {
           try {
             await bikesService.deleteBike(editBike.id);
-            Alert.alert("Success", "Bike deleted", [
+            showSuccess("Success", "Bike deleted", [
               { text: "OK", onPress: () => navigation.goBack() },
             ]);
           } catch (e) {
-            Alert.alert("Error", "Failed to delete bike");
+            showError("Error", "Failed to delete bike");
           }
         },
       },

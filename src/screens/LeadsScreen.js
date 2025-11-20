@@ -7,10 +7,10 @@ import {
   TouchableOpacity,
   RefreshControl,
   Linking,
-  Alert,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useNavigation } from "@react-navigation/native";
+import { useAlert } from "../contexts/AlertContext";
 import {
   COLORS,
   SPACING,
@@ -24,6 +24,7 @@ import { mockWhatsAppLeads, mockCallLeads } from "../services/mockData";
 
 const LeadsScreen = () => {
   const navigation = useNavigation();
+  const { showError, showWarning } = useAlert();
   const [leads, setLeads] = useState([]);
   const [filteredLeads, setFilteredLeads] = useState([]);
   const [activeFilter, setActiveFilter] = useState("all");
@@ -77,7 +78,7 @@ const LeadsScreen = () => {
       if (supported) {
         Linking.openURL(url);
       } else {
-        Alert.alert("Error", "Cannot open this link");
+        showError("Error", "Cannot open this link");
       }
     });
   };
@@ -92,7 +93,7 @@ const LeadsScreen = () => {
   };
 
   const handleCloseLead = async (lead) => {
-    Alert.alert("Close Lead", "Are you sure you want to close this lead?", [
+    showWarning("Close Lead", "Are you sure you want to close this lead?", [
       { text: "Cancel", style: "cancel" },
       {
         text: "Close",
@@ -106,7 +107,7 @@ const LeadsScreen = () => {
               )
             );
           } catch (error) {
-            Alert.alert("Error", "Failed to close lead");
+            showError("Error", "Failed to close lead");
           }
         },
       },

@@ -7,12 +7,15 @@ import AppNavigator from './src/navigation/AppNavigator';
 import LoginScreen from './src/screens/LoginScreen';
 import { COLORS } from './src/constants/theme';
 import { LoadingProvider, useLoading } from './src/contexts/LoadingContext';
+import { AlertProvider, useAlert } from './src/contexts/AlertContext';
 import GlobalLoader from './src/components/GlobalLoader';
+import AlertModal from './src/components/AlertModal';
 import { setLoadingManager } from './src/services/dataService';
 
 function AppContent() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const { showLoading, hideLoading } = useLoading();
+  const { alert, hideAlert } = useAlert();
 
   useEffect(() => {
     // Set loading manager for dataService
@@ -42,6 +45,14 @@ function AppContent() {
           </NavigationContainer>
         )}
         <GlobalLoader />
+        <AlertModal
+          visible={alert.visible}
+          type={alert.type}
+          title={alert.title}
+          message={alert.message}
+          buttons={alert.buttons}
+          onClose={hideAlert}
+        />
       </View>
     </SafeAreaProvider>
   );
@@ -50,7 +61,9 @@ function AppContent() {
 export default function App() {
   return (
     <LoadingProvider>
-      <AppContent />
+      <AlertProvider>
+        <AppContent />
+      </AlertProvider>
     </LoadingProvider>
   );
 }

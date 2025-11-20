@@ -8,8 +8,8 @@ export const COLORS = {
   
   // Background Colors
   background: '#FFF9ED',         // Light Cream Background
-  backgroundSecondary: '#FFE5D1', // Peach Background
-  backgroundGray: '#FFF9ED',     // Same as background for consistency
+  backgroundSecondary: '#FFF9ED', // Light Cream Background
+  backgroundGray: '#FFF9ED',     // Light Cream for consistency
   surface: '#FFFFFF',            // White surface
   
   // Status Colors
@@ -19,10 +19,10 @@ export const COLORS = {
   info: '#0284C7',
   
   // Card Backgrounds
-  activeBookings: '#FFE5D1',
-  pendingReturns: '#FFE5D1',
-  newLeads: '#FFE5D1',
-  revenue: '#FFF9ED',
+  activeBookings: '#FFF9ED',     // Light Cream
+  pendingReturns: '#FFF9ED',     // Light Cream
+  newLeads: '#FFF9ED',           // Light Cream
+  revenue: '#FFF9ED',            // Light Cream
   
   // Text Colors
   textPrimary: '#212121',
@@ -30,8 +30,8 @@ export const COLORS = {
   textLight: '#BDBDBD',
   
   // Border Colors
-  border: '#FFE5D1',
-  borderLight: '#FFF9ED',
+  border: '#E5E5E5',              // Light gray for visibility on yellowish surfaces
+  borderLight: '#F5F5F5',        // Very light gray for subtle borders
   
   // Lead Status
   leadNew: '#059669',

@@ -5,28 +5,29 @@ import {
   TextInput,
   StyleSheet,
   TouchableOpacity,
-  Alert,
   ScrollView,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Phone } from "lucide-react-native";
 import { leadsService } from "../services/dataService";
 import { useNavigation } from "@react-navigation/native";
+import { useAlert } from "../contexts/AlertContext";
 import { COLORS, SPACING, FONT_SIZES, BORDER_RADIUS } from "../constants/theme";
 
 const AddLeadScreen = () => {
   const navigation = useNavigation();
+  const { showSuccess, showError } = useAlert();
   const [phone, setPhone] = useState("");
   const [message, setMessage] = useState("");
 
   const handleSave = async () => {
     const fullPhone = phone.trim();
     if (!fullPhone) {
-      Alert.alert("Error", "Phone number is required");
+      showError("Error", "Phone number is required");
       return;
     }
     if (fullPhone.length < 10) {
-      Alert.alert("Error", "Enter valid phone number");
+      showError("Error", "Enter valid phone number");
       return;
     }
 
@@ -37,11 +38,11 @@ const AddLeadScreen = () => {
         source: "manual",
       });
 
-      Alert.alert("Success", "Lead added", [
+      showSuccess("Success", "Lead added", [
         { text: "OK", onPress: () => navigation.goBack() },
       ]);
     } catch (err) {
-      Alert.alert("Error", "Failed to add lead");
+      showError("Error", "Failed to add lead");
     }
   };
 
@@ -63,13 +64,14 @@ const AddLeadScreen = () => {
                 <View style={styles.phonePrefix}>
                   <Text style={styles.phonePrefixText}>+91</Text>
                 </View>
-                <View style={styles.inputContainer}>
+                <View style={styles.phoneInputWrapper}>
                   <View style={styles.inputIcon}>
                     <Phone size={18} color={COLORS.textSecondary} />
                   </View>
                   <TextInput
                     style={styles.input}
                     value={phone}
+                    editable={true}
                     onChangeText={(text) => {
                       // Only allow digits
                       const digitsOnly = text.replace(/\D/g, "");
@@ -163,6 +165,7 @@ const styles = StyleSheet.create({
   phoneInputContainer: {
     flexDirection: "row",
     gap: SPACING.sm,
+    alignItems: "stretch",
   },
   phonePrefix: {
     backgroundColor: COLORS.backgroundGray,
@@ -178,6 +181,15 @@ const styles = StyleSheet.create({
     fontSize: FONT_SIZES.md,
     fontWeight: "600",
     color: COLORS.textPrimary,
+  },
+  phoneInputWrapper: {
+    flex: 1,
+    flexDirection: "row",
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    borderRadius: BORDER_RADIUS.md,
+    backgroundColor: COLORS.backgroundGray,
+    alignItems: "center",
   },
   inputContainer: {
     flex: 1,

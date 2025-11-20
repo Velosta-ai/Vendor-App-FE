@@ -104,8 +104,8 @@ const AppNavigator = ({ onLogout }) => {
 
           if (route.name === "Dashboard")
             iconName = focused ? "home" : "home-outline";
-          if (route.name === "Leads")
-            iconName = focused ? "chatbubbles" : "chatbubbles-outline";
+          // if (route.name === "Leads")
+          //   iconName = focused ? "chatbubbles" : "chatbubbles-outline";
           if (route.name === "Bookings")
             iconName = focused ? "calendar" : "calendar-outline";
           if (route.name === "Bikes")
@@ -139,11 +139,11 @@ const AppNavigator = ({ onLogout }) => {
       component={DashboardScreen}
       initialParams={{ onLogout }}
     />
-    <Tab.Screen
+    {/* <Tab.Screen
       name="Leads"
       component={LeadsStack}
       options={{ headerShown: false }}
-    />
+    /> */}
     <Tab.Screen
       name="Bookings"
       component={BookingsStack}

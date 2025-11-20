@@ -7,11 +7,11 @@ import {
   StyleSheet,
   KeyboardAvoidingView,
   Platform,
-  Alert,
   ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Lock, User, Eye, EyeOff } from 'lucide-react-native';
+import { useAlert } from '../contexts/AlertContext';
 import { COLORS, SPACING, FONT_SIZES, BORDER_RADIUS } from '../constants/theme';
 
 // Test credentials
@@ -21,6 +21,7 @@ const TEST_CREDENTIALS = {
 };
 
 const LoginScreen = ({ onLogin }) => {
+  const { showError } = useAlert();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -28,7 +29,7 @@ const LoginScreen = ({ onLogin }) => {
 
   const handleLogin = async () => {
     if (!username.trim() || !password.trim()) {
-      Alert.alert('Error', 'Please enter both username and password');
+      showError('Error', 'Please enter both username and password');
       return;
     }
 
@@ -44,7 +45,7 @@ const LoginScreen = ({ onLogin }) => {
         onLogin();
       } else {
         setLoading(false);
-        Alert.alert(
+        showError(
           'Login Failed',
           'Invalid credentials. Use:\nUsername: admin\nPassword: admin123'
         );
