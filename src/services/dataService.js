@@ -1,6 +1,7 @@
 // src/services/dataService.js
 import Constants from "expo-constants";
 import { Platform } from "react-native";
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const getApiUrl = () => {
   if (__DEV__) {
@@ -12,11 +13,32 @@ const getApiUrl = () => {
 
 const API_BASE = getApiUrl();
 
+const AUTH_KEY = '@velosta_auth';
+
 // JWT token storage (set after login/register)
 let authToken = null;
 
 export const setAuthToken = (token) => {
   authToken = token;
+};
+
+// Helper to get token from AsyncStorage if not in memory
+const getAuthToken = async () => {
+  if (authToken) return authToken;
+  
+  try {
+    const authData = await AsyncStorage.getItem(AUTH_KEY);
+    if (authData) {
+      const { user } = JSON.parse(authData);
+      if (user?.token) {
+        authToken = user.token;
+        return authToken;
+      }
+    }
+  } catch (error) {
+    console.error('Error getting auth token:', error);
+  }
+  return null;
 };
 
 // Loading Manager
@@ -46,10 +68,13 @@ const withLoading = async (apiCall, options = {}) => {
 };
 
 // AUTH HEADERS
-const authHeaders = () => ({
-  "Content-Type": "application/json",
-  Authorization: `Bearer ${authToken}`,
-});
+const authHeaders = async () => {
+  const token = await getAuthToken();
+  return {
+    "Content-Type": "application/json",
+    Authorization: `Bearer ${token}`,
+  };
+};
 
 /* ------------------------------ AUTH ------------------------------ */
 export const authService = {
@@ -91,9 +116,8 @@ export const authService = {
 export const dashboardService = {
   getDashboard(options) {
     return withLoading(async () => {
-      const res = await fetch(`${API_BASE}/dashboard`, {
-        headers: authHeaders(),
-      });
+      const headers = await authHeaders();
+      const res = await fetch(`${API_BASE}/dashboard`, { headers });
       
       const data = await res.json();
       
@@ -110,7 +134,8 @@ export const dashboardService = {
 export const bikesService = {
   async getBikes(options) {
     return withLoading(async () => {
-      const res = await fetch(`${API_BASE}/bikes`, { headers: authHeaders() });
+      const headers = await authHeaders();
+      const res = await fetch(`${API_BASE}/bikes`, { headers });
       
       if (!res.ok) {
         const errorData = await res.json().catch(() => ({ error: "Server error" }));
@@ -123,9 +148,8 @@ export const bikesService = {
 
   async getBikeAvailability(id, options) {
     return withLoading(async () => {
-      const res = await fetch(`${API_BASE}/bikes/${id}/availability`, {
-        headers: authHeaders(),
-      });
+      const headers = await authHeaders();
+      const res = await fetch(`${API_BASE}/bikes/${id}/availability`, { headers });
       
       if (!res.ok) {
         const errorData = await res.json().catch(() => ({ error: "Server error" }));
@@ -144,9 +168,8 @@ export const bikesService = {
 
   async getBikeById(id, options) {
     return withLoading(async () => {
-      const res = await fetch(`${API_BASE}/bikes/${id}`, {
-        headers: authHeaders(),
-      });
+      const headers = await authHeaders();
+      const res = await fetch(`${API_BASE}/bikes/${id}`, { headers });
       
       if (!res.ok) {
         const errorData = await res.json().catch(() => ({ error: "Server error" }));
@@ -159,9 +182,10 @@ export const bikesService = {
 
   async createBike(payload, options) {
     return withLoading(async () => {
+      const headers = await authHeaders();
       const res = await fetch(`${API_BASE}/bikes`, {
         method: "POST",
-        headers: authHeaders(),
+        headers,
         body: JSON.stringify(payload),
       });
       
@@ -177,9 +201,10 @@ export const bikesService = {
 
   async updateBike(id, payload, options) {
     return withLoading(async () => {
+      const headers = await authHeaders();
       const res = await fetch(`${API_BASE}/bikes/${id}`, {
         method: "PUT",
-        headers: authHeaders(),
+        headers,
         body: JSON.stringify(payload),
       });
       
@@ -195,9 +220,10 @@ export const bikesService = {
 
   async updateBikeStatus(id, status, options) {
     return withLoading(async () => {
+      const headers = await authHeaders();
       const res = await fetch(`${API_BASE}/bikes/${id}/status`, {
         method: "PATCH",
-        headers: authHeaders(),
+        headers,
         body: JSON.stringify({ status }),
       });
       
@@ -214,9 +240,10 @@ export const bikesService = {
   // NEW: toggle maintenance flag
   async toggleMaintenance(id, options) {
     return withLoading(async () => {
+      const headers = await authHeaders();
       const res = await fetch(`${API_BASE}/bikes/${id}/maintenance`, {
         method: "PATCH",
-        headers: authHeaders(),
+        headers,
       });
       
       if (!res.ok) {
@@ -236,9 +263,10 @@ export const bikesService = {
 
   async deleteBike(id, options) {
     return withLoading(async () => {
+      const headers = await authHeaders();
       const res = await fetch(`${API_BASE}/bikes/${id}`, {
         method: "DELETE",
-        headers: authHeaders(),
+        headers,
       });
       
       const data = await res.json();
@@ -260,7 +288,8 @@ export const bookingsService = {
         ? `${API_BASE}/bookings?status=${status}`
         : `${API_BASE}/bookings`;
 
-      const res = await fetch(url, { headers: authHeaders() });
+      const headers = await authHeaders();
+      const res = await fetch(url, { headers });
       
       const data = await res.json();
       
@@ -274,9 +303,8 @@ export const bookingsService = {
 
   async getBookingById(id, options) {
     return withLoading(async () => {
-      const res = await fetch(`${API_BASE}/bookings/${id}`, {
-        headers: authHeaders(),
-      });
+      const headers = await authHeaders();
+      const res = await fetch(`${API_BASE}/bookings/${id}`, { headers });
       
       const data = await res.json();
       
@@ -290,9 +318,10 @@ export const bookingsService = {
 
   async createBooking(payload, options) {
     return withLoading(async () => {
+      const headers = await authHeaders();
       const res = await fetch(`${API_BASE}/bookings`, {
         method: "POST",
-        headers: authHeaders(),
+        headers,
         body: JSON.stringify(payload),
       });
       
@@ -308,9 +337,10 @@ export const bookingsService = {
 
   async updateBooking(id, payload, options) {
     return withLoading(async () => {
+      const headers = await authHeaders();
       const res = await fetch(`${API_BASE}/bookings/${id}`, {
         method: "PUT",
-        headers: authHeaders(),
+        headers,
         body: JSON.stringify(payload),
       });
       
@@ -326,9 +356,10 @@ export const bookingsService = {
 
   async markReturned(id, options) {
     return withLoading(async () => {
+      const headers = await authHeaders();
       const res = await fetch(`${API_BASE}/bookings/${id}/returned`, {
         method: "PATCH",
-        headers: authHeaders(),
+        headers,
       });
       
       const data = await res.json();
@@ -343,9 +374,10 @@ export const bookingsService = {
 
   async deleteBooking(id, options) {
     return withLoading(async () => {
+      const headers = await authHeaders();
       const res = await fetch(`${API_BASE}/bookings/${id}`, {
         method: "DELETE",
-        headers: authHeaders(),
+        headers,
       });
       
       const data = await res.json();
