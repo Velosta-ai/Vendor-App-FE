@@ -40,3 +40,4 @@ yarn-error.*
 
 # markdown files
 *.md
+/BE

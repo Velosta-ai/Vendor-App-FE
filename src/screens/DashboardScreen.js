@@ -28,6 +28,7 @@ import {
 } from "lucide-react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { dashboardService } from "../services/dataService";
+import { useAuth } from "../contexts/AuthContext";
 import {
   COLORS,
   SPACING,
@@ -118,6 +119,7 @@ const StatCard = ({ title, value, subtitle, icon, bgColor, onPress }) => {
 const DashboardScreen = () => {
   const navigation = useNavigation();
   const route = useRoute();
+  const { logout } = useAuth();
 
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -213,11 +215,24 @@ const DashboardScreen = () => {
       hour12: true,
     });
 
-  const handleLogout = () => {
-    const onLogout = route.params?.onLogout;
-    if (onLogout) return onLogout();
-    // fallback: navigate to login or goBack
-    navigation.getParent()?.goBack();
+  const handleLogout = async () => {
+    Alert.alert(
+      "Logout",
+      "Are you sure you want to logout?",
+      [
+        {
+          text: "Cancel",
+          style: "cancel",
+        },
+        {
+          text: "Logout",
+          onPress: async () => {
+            await logout();
+          },
+          style: "destructive",
+        },
+      ]
+    );
   };
 
   // navigate helper

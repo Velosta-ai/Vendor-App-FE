@@ -12,32 +12,17 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Lock, User, Eye, EyeOff } from "lucide-react-native";
 import { useAlert } from "../contexts/AlertContext";
+import { useAuth } from "../contexts/AuthContext";
 import { COLORS, SPACING, FONT_SIZES, BORDER_RADIUS } from "../constants/theme";
-import { authService, setAuthToken } from "../services/dataService"; // adjust import path
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import { authService, setAuthToken } from "../services/dataService";
 
 const LoginScreen = ({ navigation }) => {
   const { showError } = useAlert();
+  const { login: saveAuth } = useAuth();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-
-  const onSuccess = async (token, account) => {
-    try {
-      setAuthToken(token);
-      await AsyncStorage.setItem("velosta_token", token);
-      await AsyncStorage.setItem("velosta_account", JSON.stringify(account));
-      // reset navigation to Dashboard (Main Tab)
-      navigation.reset({
-        index: 0,
-        routes: [{ name: "MainTabs" }],
-      });
-    } catch (e) {
-      // fallback
-      navigation.navigate("Dashboard");
-    }
-  };
 
   const handleLogin = async () => {
     if (!username.trim() || !password.trim()) {
@@ -53,7 +38,17 @@ const LoginScreen = ({ navigation }) => {
       });
 
       if (res && res.token) {
-        await onSuccess(res.token, res.account || {});
+        // Set token for API calls
+        setAuthToken(res.token);
+        
+        // Save auth with 7-day session
+        await saveAuth({
+          token: res.token,
+          account: res.account || {},
+          email: username.trim(),
+        });
+        
+        // Navigation will happen automatically via RootNavigator
       } else {
         const message =
           (res && res.message) || (res && res.error) || "Login failed";

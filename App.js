@@ -3,6 +3,7 @@ import { NavigationContainer } from "@react-navigation/native";
 import { StatusBar } from "expo-status-bar";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
+import { AuthProvider } from "./src/contexts/AuthContext";
 import { LoadingProvider } from "./src/contexts/LoadingContext";
 import { AlertProvider } from "./src/contexts/AlertContext";
 
@@ -44,10 +45,12 @@ function AppContent() {
 
 export default function App() {
   return (
-    <LoadingProvider>
-      <AlertProvider>
-        <AppContent />
-      </AlertProvider>
-    </LoadingProvider>
+    <AuthProvider>
+      <LoadingProvider>
+        <AlertProvider>
+          <AppContent />
+        </AlertProvider>
+      </LoadingProvider>
+    </AuthProvider>
   );
 }
