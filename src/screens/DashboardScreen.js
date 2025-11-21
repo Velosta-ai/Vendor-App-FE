@@ -13,6 +13,7 @@ import {
   ActivityIndicator,
   Alert,
   Platform,
+  AppState,
 } from "react-native";
 import { useNavigation, useRoute, useFocusEffect } from "@react-navigation/native";
 import {
@@ -134,6 +135,19 @@ const DashboardScreen = () => {
     // tick every minute for time display
     const t = setInterval(() => setTime(new Date()), 60000);
     return () => clearInterval(t);
+  }, []);
+
+  // Reload when app comes to foreground
+  useEffect(() => {
+    const subscription = AppState.addEventListener('change', (nextAppState) => {
+      if (nextAppState === 'active') {
+        loadDashboard({ showLoader: false });
+      }
+    });
+
+    return () => {
+      subscription?.remove();
+    };
   }, []);
 
   const loadDashboard = useCallback(async (opts = { showLoader: true }) => {

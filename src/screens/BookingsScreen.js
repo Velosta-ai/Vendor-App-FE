@@ -1,5 +1,5 @@
 // src/screens/BookingsScreen.js
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import {
   View,
   Text,
@@ -12,6 +12,7 @@ import {
   StatusBar,
   Modal,
   TextInput,
+  AppState,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useNavigation, useRoute } from "@react-navigation/native";
@@ -67,7 +68,7 @@ const BookingsScreen = () => {
   const [selectedBooking, setSelectedBooking] = useState(null);
   const [additionalPayment, setAdditionalPayment] = useState("");
 
-  const loadBookings = async () => {
+  const loadBookings = useCallback(async () => {
     try {
       const active = await bookingsService.getBookings("ACTIVE", { skipGlobalLoader: true });
       const upcoming = await bookingsService.getBookings("UPCOMING", { skipGlobalLoader: true });
@@ -77,14 +78,27 @@ const BookingsScreen = () => {
       console.error("Error loading bookings:", error);
       showError("Error", "Failed to load bookings");
     }
-  };
+  }, [showError]);
 
   // Reload when screen focused
   useFocusEffect(
     useCallback(() => {
       loadBookings();
-    }, [])
+    }, [loadBookings])
   );
+
+  // Reload when app comes to foreground
+  useEffect(() => {
+    const subscription = AppState.addEventListener('change', (nextAppState) => {
+      if (nextAppState === 'active') {
+        loadBookings();
+      }
+    });
+
+    return () => {
+      subscription?.remove();
+    };
+  }, [loadBookings]);
 
   const onRefresh = async () => {
     setRefreshing(true);

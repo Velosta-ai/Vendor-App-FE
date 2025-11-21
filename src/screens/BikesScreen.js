@@ -8,6 +8,7 @@ import {
   TouchableOpacity,
   RefreshControl,
   Alert,
+  AppState,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useNavigation, useFocusEffect } from "@react-navigation/native";
@@ -106,6 +107,19 @@ const BikesScreen = () => {
       loadBikes();
     }, [loadBikes])
   );
+
+  // Reload when app comes to foreground
+  useEffect(() => {
+    const subscription = AppState.addEventListener('change', (nextAppState) => {
+      if (nextAppState === 'active') {
+        loadBikes();
+      }
+    });
+
+    return () => {
+      subscription?.remove();
+    };
+  }, [loadBikes]);
 
   const onRefresh = async () => {
     setRefreshing(true);
