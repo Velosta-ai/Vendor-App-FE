@@ -125,9 +125,7 @@ const DashboardScreen = () => {
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [vendorName, setVendorName] = useState(
-    route.params?.vendorName || "Vendor"
-  );
+  const [organizationName, setOrganizationName] = useState("Organization");
   const [time, setTime] = useState(new Date());
   const [error, setError] = useState(null);
 
@@ -178,8 +176,12 @@ const DashboardScreen = () => {
           leads: res.leads || { new: 0, open: 0 },
           revenue: res.revenue || { total: 0, thisMonth: 0 },
         });
-        // if vendor name present in response, use it
-        if (res.vendor?.name) setVendorName(res.vendor.name);
+        // Update organization name from API response
+        if (res.vendor?.name) {
+          setOrganizationName(res.vendor.name);
+        } else if (res.organization?.name) {
+          setOrganizationName(res.organization.name);
+        }
       }
     } catch (err) {
       console.error("loadDashboard error:", err);
@@ -280,7 +282,7 @@ const DashboardScreen = () => {
           <View style={styles.headerTop}>
             <View>
               <Text style={styles.greeting}>{getGreeting()}</Text>
-              <Text style={styles.name}>{vendorName}</Text>
+              <Text style={styles.name}>{organizationName}</Text>
             </View>
             <TouchableOpacity
               style={styles.logoutButton}
@@ -456,9 +458,9 @@ const DashboardScreen = () => {
 /* Helper: improved WhatsApp message composer
    Use in booking screen where booking object is available.
    Example usage:
-     handleWhatsApp(booking, vendorName, showError, Linking)
+     handleWhatsApp(booking, organizationName, showError, Linking)
 */
-export const composeWhatsAppUrl = ({ booking, vendorName = "Vendor" }) => {
+export const composeWhatsAppUrl = ({ booking, vendorName = "Organization" }) => {
   // booking: { id, customerName, bike: { name }, startDate, endDate, totalAmount, phone }
   if (!booking) return null;
   const phone = (booking.phone || "").replace(/\D/g, "");
