@@ -1,17 +1,34 @@
 {
   "expo": {
+    "name": "Velosta vendor",
+    "slug": "velosta-vendor",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#FFFFFF"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.velosta.vendor"
+    },
     "android": {
       "package": "com.velosta.vendor",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#FFFFFF"
+      },
       "splash": {
-        "backgroundColor": "#FFFFFF",
+        "image": "./assets/splash.png",
         "resizeMode": "contain",
-        "image": "./assets/splash.png"
+        "backgroundColor": "#FFFFFF"
       }
-    },
-    "splash": {
-      "backgroundColor": "#FFFFFF",
-      "resizeMode": "contain",
-      "image": "./assets/splash.png"
     },
     "extra": {
       "eas": {
