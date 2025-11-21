@@ -8,6 +8,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   ActivityIndicator,
+  Image,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Lock, User, Eye, EyeOff } from "lucide-react-native";
@@ -71,7 +72,11 @@ const LoginScreen = ({ navigation }) => {
           {/* Header */}
           <View style={styles.header}>
             <View style={styles.logoContainer}>
-              <Lock size={48} color={COLORS.primary} />
+              <Image
+                source={require("../../logo.png")}
+                style={styles.logo}
+                resizeMode="contain"
+              />
             </View>
             <Text style={styles.title}>Velosta Vendor CRM</Text>
             <Text style={styles.subtitle}>Sign in to continue</Text>
@@ -195,13 +200,19 @@ const styles = StyleSheet.create({
     marginBottom: SPACING.xxl * 2,
   },
   logoContainer: {
-    width: 80,
-    height: 80,
+    width: 100,
+    height: 100,
     borderRadius: BORDER_RADIUS.xl,
-    backgroundColor: `${COLORS.primary}15`,
+    backgroundColor: COLORS.surface,
     justifyContent: "center",
     alignItems: "center",
     marginBottom: SPACING.lg,
+    borderWidth: 1,
+    borderColor: COLORS.borderLight,
+  },
+  logo: {
+    width: 80,
+    height: 80,
   },
   title: {
     fontSize: 28,
