@@ -30,9 +30,9 @@ const COLORS = {
 };
 
 const TYPO = {
-  sm: THEME_FONT_SIZES.sm,
-  base: THEME_FONT_SIZES.md,
-  lg: THEME_FONT_SIZES.xl,
+  sm: THEME_FONT_SIZES.md,      // Increased from sm
+  base: THEME_FONT_SIZES.lg,     // Increased from md
+  lg: THEME_FONT_SIZES.xxl,      // Increased from xl
 };
 
 const RADIUS = THEME_BORDER_RADIUS;
@@ -87,7 +87,7 @@ const BikeCard = ({
     <View style={styles.card}>
       <View style={styles.left}>
         <View style={styles.iconWrap}>
-          <Bike size={20} color={COLORS.primary} />
+          <Bike size={24} color={COLORS.primary} />
         </View>
 
         <View style={{ flex: 1 }}>
@@ -120,7 +120,8 @@ const BikeCard = ({
           <Edit size={16} color={COLORS.primary} />
         </TouchableOpacity>
 
-        <TouchableOpacity
+        {/* TEMP: Maintenance button commented out */}
+        {/* <TouchableOpacity
           style={[
             styles.maintBtn,
             bike.status === "MAINTENANCE" ? styles.maintBtnActive : null,
@@ -139,7 +140,7 @@ const BikeCard = ({
               </Text>
             </>
           )}
-        </TouchableOpacity>
+        </TouchableOpacity> */}
       </View>
     </View>
   );
@@ -162,8 +163,8 @@ const styles = StyleSheet.create({
   left: { flexDirection: "row", gap: 12, flex: 1, alignItems: "center" },
 
   iconWrap: {
-    width: 56,
-    height: 56,
+    width: 64,        // Increased from 56
+    height: 64,       // Increased from 56
     borderRadius: 12,
     backgroundColor: COLORS.background,
     alignItems: "center",
@@ -175,7 +176,7 @@ const styles = StyleSheet.create({
   name: { fontSize: TYPO.lg, fontWeight: "700", color: COLORS.textPrimary },
   reg: { fontSize: TYPO.sm, color: COLORS.textSecondary, marginTop: 4 },
   rate: {
-    fontSize: TYPO.sm,
+    fontSize: TYPO.base,   // Increased from sm
     fontWeight: "600",
     color: COLORS.primary,
     marginTop: 6,
@@ -191,7 +192,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
 
-  statusText: { fontSize: 12, fontWeight: "700", color: COLORS.success },
+  statusText: { fontSize: 14, fontWeight: "700", color: COLORS.success },  // Increased from 12
 
   statusMaintenance: { backgroundColor: "#FFE4E6" },
   statusRented: { backgroundColor: "#FFF4D6" },
