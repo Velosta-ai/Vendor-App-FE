@@ -202,8 +202,8 @@ const styles = StyleSheet.create({
   logoContainer: {
     width: 140,
     height: 140,
-    borderRadius: 30,
-    backgroundColor: "#fff",
+    borderRadius: 24,
+    backgroundColor: COLORS.primary,
     justifyContent: "center",
     alignItems: "center",
     marginBottom: SPACING.xl,
@@ -212,12 +212,11 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.12,
     shadowRadius: 16,
     elevation: 8,
-    borderWidth: 1,
-    borderColor: "#f0f0f0",
+    overflow: "hidden",
   },
   logo: {
-    width: 100,
-    height: 100,
+    width: 140,
+    height: 140,
   },
   title: {
     fontSize: 28,
