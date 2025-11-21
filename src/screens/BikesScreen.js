@@ -84,15 +84,22 @@ const BikesScreen = () => {
   const [refreshing, setRefreshing] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  const loadBikes = async (showLoader = false) => {
+  const loadBikes = async (showLoader = false, waitForToken = false) => {
     try {
       if (showLoader) setLoading(true);
       
+      // Small delay to ensure token is set after auth (mainly for initial load)
+      if (waitForToken) {
+        console.log('[Bikes] Waiting for token to be ready...');
+        await new Promise(resolve => setTimeout(resolve, 150));
+      }
+      
+      console.log('[Bikes] Loading bikes...');
       const data = await bikesService.getBikes({ skipGlobalLoader: true });
       
       // Check if response has an error field
       if (data?.error) {
-        console.error("API Error:", data.error);
+        console.error('[Bikes] API Error:', data.error);
         showError("Error", data.error);
         setBikes([]); // Set empty array to prevent crash
         return;
@@ -100,15 +107,16 @@ const BikesScreen = () => {
       
       // Validate that we received an array
       if (!Array.isArray(data)) {
-        console.error("Invalid response format:", data);
+        console.error('[Bikes] Invalid response format:', data);
         showError("Error", "Invalid response from server");
         setBikes([]);
         return;
       }
       
+      console.log('[Bikes] Bikes loaded successfully:', data.length);
       setBikes(data);
     } catch (error) {
-      console.error("Error loading bikes:", error);
+      console.error('[Bikes] Error loading bikes:', error);
       showError("Error", error?.message || "Failed to load bikes");
       setBikes([]);
     } finally {
@@ -118,7 +126,7 @@ const BikesScreen = () => {
 
   // Initial load
   useEffect(() => {
-    loadBikes(true);
+    loadBikes(true, true); // Wait for token on initial load
   }, []);
 
   // Auto-refresh when screen comes into focus

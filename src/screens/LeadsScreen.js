@@ -31,15 +31,22 @@ const LeadsScreen = () => {
   const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
-    loadLeads();
+    loadLeads(true); // Wait for token on initial load
   }, []);
 
   useEffect(() => {
     applyFilter(activeFilter);
   }, [leads, activeFilter]);
 
-  const loadLeads = async () => {
+  const loadLeads = async (waitForToken = false) => {
     try {
+      // Small delay to ensure token is set after auth (mainly for initial load)
+      if (waitForToken) {
+        console.log('[Leads] Waiting for token to be ready...');
+        await new Promise(resolve => setTimeout(resolve, 150));
+      }
+      
+      console.log('[Leads] Loading leads...');
       const allLeads = await leadsService.getLeads();
 
       // Sort newest → oldest (your previous logic)
@@ -47,10 +54,10 @@ const LeadsScreen = () => {
         (a, b) => new Date(b.timestamp) - new Date(a.timestamp)
       );
 
+      console.log('[Leads] Leads loaded successfully:', sorted.length);
       setLeads(sorted);
-      console.log(sorted, "hola");
     } catch (error) {
-      console.error("Error loading leads:", error);
+      console.error('[Leads] Error loading leads:', error);
     }
   };
 

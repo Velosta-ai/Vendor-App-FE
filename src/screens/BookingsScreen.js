@@ -69,23 +69,35 @@ const BookingsScreen = () => {
   const [selectedBooking, setSelectedBooking] = useState(null);
   const [additionalPayment, setAdditionalPayment] = useState("");
 
-  const loadBookings = async (showLoader = false) => {
+  const loadBookings = async (showLoader = false, waitForToken = false) => {
     try {
       if (showLoader) setLoading(true);
       
+      // Small delay to ensure token is set after auth (mainly for initial load)
+      if (waitForToken) {
+        console.log('[Bookings] Waiting for token to be ready...');
+        await new Promise(resolve => setTimeout(resolve, 150));
+      }
+      
+      console.log('[Bookings] Loading bookings...');
       const [active, upcoming, returned] = await Promise.all([
         bookingsService.getBookings("ACTIVE", { skipGlobalLoader: true }),
         bookingsService.getBookings("UPCOMING", { skipGlobalLoader: true }),
         bookingsService.getBookings("RETURNED", { skipGlobalLoader: true }),
       ]);
       
+      console.log('[Bookings] Bookings loaded successfully', {
+        active: active?.length || 0,
+        upcoming: upcoming?.length || 0,
+        returned: returned?.length || 0
+      });
       setBookings({ 
         active: Array.isArray(active) ? active : [], 
         upcoming: Array.isArray(upcoming) ? upcoming : [], 
         returned: Array.isArray(returned) ? returned : [] 
       });
     } catch (error) {
-      console.error("Error loading bookings:", error);
+      console.error('[Bookings] Error loading bookings:', error);
       showError("Error", error?.message || "Failed to load bookings");
       setBookings({ active: [], upcoming: [], returned: [] });
     } finally {
@@ -95,7 +107,7 @@ const BookingsScreen = () => {
 
   // Initial load
   useEffect(() => {
-    loadBookings(true);
+    loadBookings(true, true); // Wait for token on initial load
   }, []);
 
   // Reload when screen focused

@@ -150,12 +150,18 @@ const DashboardScreen = () => {
     };
   }, []);
 
-  const loadDashboard = async (opts = { showLoader: true }) => {
+  const loadDashboard = async (opts = { showLoader: true, waitForToken: false }) => {
     if (opts.showLoader) {
       setLoading(true);
       setError(null);
     }
     try {
+      // Small delay to ensure token is set after auth (mainly for initial load)
+      if (opts.waitForToken) {
+        console.log('[Dashboard] Waiting for token to be ready...');
+        await new Promise(resolve => setTimeout(resolve, 150));
+      }
+      
       console.log('[Dashboard] Loading dashboard data...');
       const res = await dashboardService.getDashboard({ skipGlobalLoader: true });
       console.log('[Dashboard] Dashboard data loaded successfully');
@@ -201,7 +207,7 @@ const DashboardScreen = () => {
 
   // Initial load
   useEffect(() => {
-    loadDashboard();
+    loadDashboard({ showLoader: true, waitForToken: true });
   }, []);
 
   // Auto-refresh when screen comes into focus
