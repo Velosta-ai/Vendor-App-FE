@@ -181,6 +181,16 @@ export const bikesService = {
       }
     }, options);
   },
+
+  async deleteBike(id, options) {
+    return withLoading(async () => {
+      const res = await fetch(`${API_BASE}/bikes/${id}`, {
+        method: "DELETE",
+        headers: authHeaders(),
+      });
+      return await res.json();
+    }, options);
+  },
 };
 
 /* ------------------------------ BOOKINGS ------------------------------ */
