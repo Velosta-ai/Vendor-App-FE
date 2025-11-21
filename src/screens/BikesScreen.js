@@ -82,9 +82,12 @@ const BikesScreen = () => {
   const { showError, showSuccess } = useAlert();
   const [bikes, setBikes] = useState([]);
   const [refreshing, setRefreshing] = useState(false);
+  const [loading, setLoading] = useState(true);
 
-  const loadBikes = useCallback(async () => {
+  const loadBikes = async (showLoader = false) => {
     try {
+      if (showLoader) setLoading(true);
+      
       const data = await bikesService.getBikes({ skipGlobalLoader: true });
       
       // Check if response has an error field
@@ -108,36 +111,40 @@ const BikesScreen = () => {
       console.error("Error loading bikes:", error);
       showError("Error", error?.message || "Failed to load bikes");
       setBikes([]);
+    } finally {
+      if (showLoader) setLoading(false);
     }
-  }, [showError]);
+  };
 
+  // Initial load
   useEffect(() => {
-    loadBikes();
-  }, [loadBikes]);
+    loadBikes(true);
+  }, []);
 
   // Auto-refresh when screen comes into focus
   useFocusEffect(
     useCallback(() => {
-      loadBikes();
-    }, [loadBikes])
+      loadBikes(false);
+      return () => {}; // cleanup
+    }, [])
   );
 
   // Reload when app comes to foreground
   useEffect(() => {
     const subscription = AppState.addEventListener('change', (nextAppState) => {
       if (nextAppState === 'active') {
-        loadBikes();
+        loadBikes(false);
       }
     });
 
     return () => {
       subscription?.remove();
     };
-  }, [loadBikes]);
+  }, []);
 
   const onRefresh = async () => {
     setRefreshing(true);
-    await loadBikes();
+    await loadBikes(false);
     setRefreshing(false);
   };
 

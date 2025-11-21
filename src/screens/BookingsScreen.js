@@ -64,45 +64,64 @@ const BookingsScreen = () => {
     returned: [],
   });
   const [refreshing, setRefreshing] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [selectedBooking, setSelectedBooking] = useState(null);
   const [additionalPayment, setAdditionalPayment] = useState("");
 
-  const loadBookings = useCallback(async () => {
+  const loadBookings = async (showLoader = false) => {
     try {
-      const active = await bookingsService.getBookings("ACTIVE", { skipGlobalLoader: true });
-      const upcoming = await bookingsService.getBookings("UPCOMING", { skipGlobalLoader: true });
-      const returned = await bookingsService.getBookings("RETURNED", { skipGlobalLoader: true });
-      setBookings({ active, upcoming, returned });
+      if (showLoader) setLoading(true);
+      
+      const [active, upcoming, returned] = await Promise.all([
+        bookingsService.getBookings("ACTIVE", { skipGlobalLoader: true }),
+        bookingsService.getBookings("UPCOMING", { skipGlobalLoader: true }),
+        bookingsService.getBookings("RETURNED", { skipGlobalLoader: true }),
+      ]);
+      
+      setBookings({ 
+        active: Array.isArray(active) ? active : [], 
+        upcoming: Array.isArray(upcoming) ? upcoming : [], 
+        returned: Array.isArray(returned) ? returned : [] 
+      });
     } catch (error) {
       console.error("Error loading bookings:", error);
-      showError("Error", "Failed to load bookings");
+      showError("Error", error?.message || "Failed to load bookings");
+      setBookings({ active: [], upcoming: [], returned: [] });
+    } finally {
+      if (showLoader) setLoading(false);
     }
-  }, [showError]);
+  };
+
+  // Initial load
+  useEffect(() => {
+    loadBookings(true);
+  }, []);
 
   // Reload when screen focused
   useFocusEffect(
     useCallback(() => {
-      loadBookings();
-    }, [loadBookings])
+      loadBookings(false);
+      return () => {}; // cleanup
+    }, [])
   );
 
   // Reload when app comes to foreground
   useEffect(() => {
     const subscription = AppState.addEventListener('change', (nextAppState) => {
       if (nextAppState === 'active') {
-        loadBookings();
+        loadBookings(false);
       }
     });
 
     return () => {
       subscription?.remove();
     };
-  }, [loadBookings]);
+  }, []);
 
   const onRefresh = async () => {
     setRefreshing(true);
-    await loadBookings();
+    await loadBookings(false);
     setRefreshing(false);
   };
 
@@ -156,7 +175,7 @@ const BookingsScreen = () => {
       setShowPaymentModal(false);
       setSelectedBooking(null);
       setAdditionalPayment("");
-      await loadBookings();
+      await loadBookings(false);
       showSuccess("Success", "Marked as returned");
     } catch (err) {
       console.error(err);
@@ -180,7 +199,7 @@ const BookingsScreen = () => {
                 showError("Error", res.error);
                 return;
               }
-              await loadBookings();
+              await loadBookings(false);
               showSuccess("Deleted", "Booking deleted successfully");
             } catch (err) {
               console.error(err);

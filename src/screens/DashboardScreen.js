@@ -150,7 +150,7 @@ const DashboardScreen = () => {
     };
   }, []);
 
-  const loadDashboard = useCallback(async (opts = { showLoader: true }) => {
+  const loadDashboard = async (opts = { showLoader: true }) => {
     if (opts.showLoader) {
       setLoading(true);
       setError(null);
@@ -192,17 +192,19 @@ const DashboardScreen = () => {
     } finally {
       setLoading(false);
     }
-  }, []);
+  };
 
+  // Initial load
   useEffect(() => {
     loadDashboard();
-  }, [loadDashboard]);
+  }, []);
 
   // Auto-refresh when screen comes into focus
   useFocusEffect(
     useCallback(() => {
       loadDashboard({ showLoader: false });
-    }, [loadDashboard])
+      return () => {}; // cleanup
+    }, [])
   );
 
   const onRefresh = async () => {
