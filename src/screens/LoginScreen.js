@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -8,55 +8,68 @@ import {
   KeyboardAvoidingView,
   Platform,
   ActivityIndicator,
-} from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { Lock, User, Eye, EyeOff } from 'lucide-react-native';
-import { useAlert } from '../contexts/AlertContext';
-import { COLORS, SPACING, FONT_SIZES, BORDER_RADIUS } from '../constants/theme';
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { Lock, User, Eye, EyeOff } from "lucide-react-native";
+import { useAlert } from "../contexts/AlertContext";
+import { COLORS, SPACING, FONT_SIZES, BORDER_RADIUS } from "../constants/theme";
+import { authService, setAuthToken } from "../services/dataService"; // adjust import path
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
-// Test credentials
-const TEST_CREDENTIALS = {
-  username: 'admin',
-  password: 'admin123',
-};
-
-const LoginScreen = ({ onLogin }) => {
+const LoginScreen = ({ navigation }) => {
   const { showError } = useAlert();
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
+  const onSuccess = async (token, account) => {
+    try {
+      setAuthToken(token);
+      await AsyncStorage.setItem("velosta_token", token);
+      await AsyncStorage.setItem("velosta_account", JSON.stringify(account));
+      // reset navigation to Dashboard (Main Tab)
+      navigation.reset({
+        index: 0,
+        routes: [{ name: "MainTabs" }],
+      });
+    } catch (e) {
+      // fallback
+      navigation.navigate("Dashboard");
+    }
+  };
+
   const handleLogin = async () => {
     if (!username.trim() || !password.trim()) {
-      showError('Error', 'Please enter both username and password');
+      showError("Error", "Please enter both username and password");
       return;
     }
 
     setLoading(true);
+    try {
+      const res = await authService.login({
+        email: username.trim(),
+        password: password.trim(),
+      });
 
-    // Simulate API call
-    setTimeout(() => {
-      if (
-        username === TEST_CREDENTIALS.username &&
-        password === TEST_CREDENTIALS.password
-      ) {
-        setLoading(false);
-        onLogin();
+      if (res && res.token) {
+        await onSuccess(res.token, res.account || {});
       } else {
-        setLoading(false);
-        showError(
-          'Login Failed',
-          'Invalid credentials. Use:\nUsername: admin\nPassword: admin123'
-        );
+        const message =
+          (res && res.message) || (res && res.error) || "Login failed";
+        showError("Login Failed", message);
       }
-    }, 1000);
+    } catch (err) {
+      showError("Login Error", err.message || "Unexpected error");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <SafeAreaView style={styles.container}>
       <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
         style={styles.keyboardView}
       >
         <View style={styles.content}>
@@ -73,16 +86,21 @@ const LoginScreen = ({ onLogin }) => {
           <View style={styles.form}>
             {/* Username Input */}
             <View style={styles.inputContainer}>
-              <Text style={styles.label}>Username</Text>
+              <Text style={styles.label}>Email</Text>
               <View style={styles.inputWrapper}>
-                <User size={20} color={COLORS.textSecondary} style={styles.inputIcon} />
+                <User
+                  size={20}
+                  color={COLORS.textSecondary}
+                  style={styles.inputIcon}
+                />
                 <TextInput
                   style={styles.input}
-                  placeholder="Enter username"
+                  placeholder="Enter email"
                   placeholderTextColor={COLORS.textLight}
                   value={username}
                   onChangeText={setUsername}
                   autoCapitalize="none"
+                  keyboardType="email-address"
                   autoCorrect={false}
                 />
               </View>
@@ -92,7 +110,11 @@ const LoginScreen = ({ onLogin }) => {
             <View style={styles.inputContainer}>
               <Text style={styles.label}>Password</Text>
               <View style={styles.inputWrapper}>
-                <Lock size={20} color={COLORS.textSecondary} style={styles.inputIcon} />
+                <Lock
+                  size={20}
+                  color={COLORS.textSecondary}
+                  style={styles.inputIcon}
+                />
                 <TextInput
                   style={styles.input}
                   placeholder="Enter password"
@@ -118,7 +140,10 @@ const LoginScreen = ({ onLogin }) => {
 
             {/* Login Button */}
             <TouchableOpacity
-              style={[styles.loginButton, loading && styles.loginButtonDisabled]}
+              style={[
+                styles.loginButton,
+                loading && styles.loginButtonDisabled,
+              ]}
               onPress={handleLogin}
               disabled={loading}
             >
@@ -129,11 +154,26 @@ const LoginScreen = ({ onLogin }) => {
               )}
             </TouchableOpacity>
 
-            {/* Test Credentials Info */}
-            <View style={styles.credentialsInfo}>
-              <Text style={styles.credentialsTitle}>Test Credentials:</Text>
-              <Text style={styles.credentialsText}>Username: admin</Text>
-              <Text style={styles.credentialsText}>Password: admin123</Text>
+            {/* Extra actions */}
+            <View
+              style={{
+                marginTop: SPACING.lg,
+                flexDirection: "row",
+                justifyContent: "space-between",
+              }}
+            >
+              <TouchableOpacity
+                onPress={() => navigation.navigate("RegisterOrg")}
+              >
+                <Text style={{ color: COLORS.primary, fontWeight: "600" }}>
+                  Create Organization
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={() => navigation.navigate("JoinOrg")}>
+                <Text style={{ color: COLORS.primary, fontWeight: "600" }}>
+                  Join Organization
+                </Text>
+              </TouchableOpacity>
             </View>
           </View>
         </View>
@@ -153,10 +193,10 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
     paddingHorizontal: SPACING.xl,
-    justifyContent: 'center',
+    justifyContent: "center",
   },
   header: {
-    alignItems: 'center',
+    alignItems: "center",
     marginBottom: SPACING.xxl * 2,
   },
   logoContainer: {
@@ -164,13 +204,13 @@ const styles = StyleSheet.create({
     height: 80,
     borderRadius: BORDER_RADIUS.xl,
     backgroundColor: `${COLORS.primary}15`,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     marginBottom: SPACING.lg,
   },
   title: {
     fontSize: 28,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     color: COLORS.textPrimary,
     marginBottom: SPACING.xs,
   },
@@ -179,20 +219,20 @@ const styles = StyleSheet.create({
     color: COLORS.textSecondary,
   },
   form: {
-    width: '100%',
+    width: "100%",
   },
   inputContainer: {
     marginBottom: SPACING.lg,
   },
   label: {
     fontSize: FONT_SIZES.md,
-    fontWeight: '600',
+    fontWeight: "600",
     color: COLORS.textPrimary,
     marginBottom: SPACING.sm,
   },
   inputWrapper: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     backgroundColor: COLORS.backgroundGray,
     borderRadius: BORDER_RADIUS.md,
     borderWidth: 1,
@@ -215,37 +255,17 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.primary,
     height: 50,
     borderRadius: BORDER_RADIUS.md,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     marginTop: SPACING.lg,
   },
   loginButtonDisabled: {
     opacity: 0.6,
   },
   loginButtonText: {
-    color: '#fff',
+    color: "#fff",
     fontSize: FONT_SIZES.lg,
-    fontWeight: 'bold',
-  },
-  credentialsInfo: {
-    marginTop: SPACING.xxl,
-    padding: SPACING.lg,
-    backgroundColor: `${COLORS.primary}10`,
-    borderRadius: BORDER_RADIUS.md,
-    borderLeftWidth: 3,
-    borderLeftColor: COLORS.primary,
-  },
-  credentialsTitle: {
-    fontSize: FONT_SIZES.md,
-    fontWeight: 'bold',
-    color: COLORS.textPrimary,
-    marginBottom: SPACING.xs,
-  },
-  credentialsText: {
-    fontSize: FONT_SIZES.sm,
-    color: COLORS.textSecondary,
-    fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
-    marginTop: SPACING.xs / 2,
+    fontWeight: "bold",
   },
 });
 
