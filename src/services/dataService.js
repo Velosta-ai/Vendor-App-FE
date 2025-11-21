@@ -1,8 +1,10 @@
+// src/services/dataService.js
 import Constants from "expo-constants";
 import { Platform } from "react-native";
 
 const getApiUrl = () => {
   if (__DEV__) {
+    // your dev LAN IP (keep as supplied)
     return "http://10.63.36.143:3001/api";
   }
   return "https://vendor-app-be.vercel.app/api";
@@ -25,11 +27,11 @@ export const setLoadingManager = (manager) => {
 };
 
 const withLoading = async (apiCall) => {
-  if (loadingManager) loadingManager.showLoading();
+  if (loadingManager?.showLoading) loadingManager.showLoading();
   try {
     return await apiCall();
   } finally {
-    if (loadingManager) loadingManager.hideLoading();
+    if (loadingManager?.hideLoading) loadingManager.hideLoading();
   }
 };
 
@@ -95,12 +97,12 @@ export const bikesService = {
       return await res.json();
     });
   },
+
   async getBikeAvailability(id) {
     return withLoading(async () => {
       const res = await fetch(`${API_BASE}/bikes/${id}/availability`, {
         headers: authHeaders(),
       });
-      // Defensive: check status and parse safely
       const text = await res.text();
       try {
         return JSON.parse(text);
@@ -152,6 +154,23 @@ export const bikesService = {
       return await res.json();
     });
   },
+
+  // NEW: toggle maintenance flag
+  async toggleMaintenance(id) {
+    return withLoading(async () => {
+      const res = await fetch(`${API_BASE}/bikes/${id}/maintenance`, {
+        method: "PATCH",
+        headers: authHeaders(),
+      });
+      const text = await res.text();
+      try {
+        return JSON.parse(text);
+      } catch (e) {
+        console.warn("Non-JSON toggleMaintenance response:", text);
+        throw new Error("Invalid response from server");
+      }
+    });
+  },
 };
 
 /* ------------------------------ BOOKINGS ------------------------------ */
@@ -199,7 +218,6 @@ export const bookingsService = {
   },
 
   async markReturned(id) {
-    console.log("hooo");
     return withLoading(async () => {
       const res = await fetch(`${API_BASE}/bookings/${id}/returned`, {
         method: "PATCH",

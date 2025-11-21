@@ -146,7 +146,10 @@ const AddBookingScreen = () => {
   const [phone, setPhone] = useState(() =>
     (prefillData.phone || "").replace(/^\+91\s*/, "")
   );
-  const [selectedBike, setSelectedBike] = useState({ name: "Select A Bike" }); // bike object
+  const [selectedBike, setSelectedBike] = useState({
+    name: "Select A Bike",
+    registrationNumber: "XXXXXX",
+  }); // bike object
   const [selectedAvailability, setSelectedAvailability] = useState(null); // availability object from API
   const [bikes, setBikes] = useState([]);
   const [availMap, setAvailMap] = useState({}); // { bikeId: availability }
@@ -398,37 +401,37 @@ const AddBookingScreen = () => {
     (Number(totalAmount) || 0) - (Number(paidAmount) || 0);
 
   /* When user changes startDate manually, we auto-check availability for selected bike and auto-fix if needed */
-  useEffect(() => {
-    if (!selectedBike) return;
-    let mounted = true;
-    (async () => {
-      try {
-        const avail = await bikesService.getBikeAvailability(selectedBike.id);
-        if (!mounted) return;
-        setSelectedAvailability(avail);
-        // if selected bike is unavailable for current startDate (i.e., nextAvailableDate > startDate), auto-fix
-        if (avail && !avail.isAvailableNow && avail.nextAvailableDate) {
-          const next = new Date(avail.nextAvailableDate);
-          if (startDate < next) {
-            // auto-fix (AUTO-FIX behavior)
-            setStartDate(next);
-            setEndDate(new Date(next.getTime() + 86400000));
-            showWarning(
-              "Date adjusted",
-              `Selected bike unavailable for chosen dates. Start date adjusted to ${formatDateHuman(
-                next
-              )}`
-            );
-          }
-        }
-      } catch (err) {
-        // ignore
-      }
-    })();
-    return () => {
-      mounted = false;
-    };
-  }, [startDate, selectedBike]);
+  // useEffect(() => {
+  //   if (!selectedBike) return;
+  //   let mounted = true;
+  //   (async () => {
+  //     try {
+  //       const avail = await bikesService.getBikeAvailability(selectedBike.id);
+  //       if (!mounted) return;
+  //       setSelectedAvailability(avail);
+  //       // if selected bike is unavailable for current startDate (i.e., nextAvailableDate > startDate), auto-fix
+  //       if (avail && !avail.isAvailableNow && avail.nextAvailableDate) {
+  //         const next = new Date(avail.nextAvailableDate);
+  //         if (startDate < next) {
+  //           // auto-fix (AUTO-FIX behavior)
+  //           setStartDate(next);
+  //           setEndDate(new Date(next.getTime() + 86400000));
+  //           showWarning(
+  //             "Date adjusted",
+  //             `Selected bike unavailable for chosen dates. Start date adjusted to ${formatDateHuman(
+  //               next
+  //             )}`
+  //           );
+  //         }
+  //       }
+  //     } catch (err) {
+  //       // ignore
+  //     }
+  //   })();
+  //   return () => {
+  //     mounted = false;
+  //   };
+  // }, [startDate, selectedBike]);
 
   /* UI */
   return (
@@ -604,36 +607,68 @@ const AddBookingScreen = () => {
                 value={startDate}
                 mode="date"
                 display="default"
+                minimumDate={new Date()} // ⛔ BLOCK BACKDATES
                 onChange={(e, d) => {
                   setShowStartPicker(false);
-                  if (d) {
-                    const nStart = d;
-                    // if selected bike has nextAvailableDate and nStart < nextAvailableDate => auto-fix
-                    if (
-                      selectedAvailability &&
-                      !selectedAvailability.isAvailableNow &&
-                      selectedAvailability.nextAvailableDate
-                    ) {
-                      const next = new Date(
-                        selectedAvailability.nextAvailableDate
-                      );
-                      if (nStart < next) {
-                        // auto-fix to next
-                        setStartDate(next);
-                        setEndDate(new Date(next.getTime() + 86400000));
-                        showWarning(
-                          "Date adjusted",
-                          `Start date adjusted to ${formatDateHuman(
-                            next
-                          )} because bike is unavailable earlier.`
-                        );
-                        return;
-                      }
-                    }
+                  if (!d) return;
 
-                    setStartDate(nStart);
-                    if (nStart >= endDate)
-                      setEndDate(new Date(nStart.getTime() + 86400000));
+                  const nStart = new Date(d.setHours(0, 0, 0, 0)); // normalize
+
+                  // 1. Bike unavailable → force nextAvailableDate
+                  if (
+                    selectedAvailability &&
+                    !selectedAvailability.isAvailableNow &&
+                    selectedAvailability.nextAvailableDate
+                  ) {
+                    const next = new Date(
+                      new Date(selectedAvailability.nextAvailableDate).setHours(
+                        0,
+                        0,
+                        0,
+                        0
+                      )
+                    );
+
+                    if (nStart < next) {
+                      // Auto-fix to nextAvailableDate
+                      setStartDate(next);
+                      setEndDate(new Date(next.getTime() + 86400000)); // +1 day
+                      showWarning(
+                        "Date adjusted",
+                        `Bike unavailable. Start moved to ${formatDateHuman(
+                          next
+                        )}`
+                      );
+                      return;
+                    }
+                  }
+
+                  // 2. Normal case — set start date
+                  setStartDate(nStart);
+
+                  // 3. If endDate is before new startDate → auto-fix endDate
+                  if (endDate <= nStart) {
+                    setEndDate(new Date(nStart.getTime() + 86400000));
+                  }
+
+                  // 4. Validate availability again — if booking crosses an unavailable range
+                  if (
+                    selectedAvailability &&
+                    selectedAvailability.nextAvailableDate
+                  ) {
+                    const nextDate = new Date(
+                      new Date(selectedAvailability.nextAvailableDate).setHours(
+                        0,
+                        0,
+                        0,
+                        0
+                      )
+                    );
+
+                    // if endDate is in blocked period
+                    if (endDate < nextDate && nStart < nextDate) {
+                      setEndDate(new Date(nextDate.getTime() + 86400000));
+                    }
                   }
                 }}
               />
@@ -644,10 +679,46 @@ const AddBookingScreen = () => {
                 value={endDate}
                 mode="date"
                 display="default"
-                minimumDate={startDate}
+                minimumDate={startDate} // end must be >= start
                 onChange={(e, d) => {
                   setShowEndPicker(false);
-                  if (d) setEndDate(d);
+                  if (!d) return;
+
+                  const nEnd = new Date(d.setHours(0, 0, 0, 0));
+
+                  // 1. End cannot be before start
+                  if (nEnd < startDate) {
+                    setEndDate(new Date(startDate.getTime() + 86400000));
+                    return;
+                  }
+
+                  // 2. Cannot pick dates in blocked range
+                  if (
+                    selectedAvailability &&
+                    !selectedAvailability.isAvailableNow &&
+                    selectedAvailability.nextAvailableDate
+                  ) {
+                    const next = new Date(
+                      new Date(selectedAvailability.nextAvailableDate).setHours(
+                        0,
+                        0,
+                        0,
+                        0
+                      )
+                    );
+
+                    if (nEnd < next && startDate < next) {
+                      // auto-fix
+                      setEndDate(new Date(next.getTime() + 86400000));
+                      showWarning(
+                        "Date adjusted",
+                        `End date moved because bike is unavailable in the selected period.`
+                      );
+                      return;
+                    }
+                  }
+
+                  setEndDate(nEnd);
                 }}
               />
             )}

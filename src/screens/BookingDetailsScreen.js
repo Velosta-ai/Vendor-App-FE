@@ -22,16 +22,26 @@ import {
   MessageCircle,
   IndianRupee,
   X,
+  MessageSquare,
 } from "lucide-react-native";
 import { bookingsService } from "../services/dataService";
 
-import { COLORS as THEME_COLORS, SPACING, FONT_SIZES, BORDER_RADIUS } from "../constants/theme";
+import {
+  COLORS as THEME_COLORS,
+  SPACING,
+  FONT_SIZES,
+  BORDER_RADIUS,
+} from "../constants/theme";
 
 const COLORS = {
   primary: THEME_COLORS.primary,
   background: THEME_COLORS.background,
   surface: THEME_COLORS.surface,
-  text: { primary: THEME_COLORS.textPrimary, secondary: THEME_COLORS.textSecondary, tertiary: "#94a3b8" },
+  text: {
+    primary: THEME_COLORS.textPrimary,
+    secondary: THEME_COLORS.textSecondary,
+    tertiary: "#94a3b8",
+  },
   border: { light: THEME_COLORS.borderLight },
 };
 
@@ -76,7 +86,7 @@ const BookingDetailsScreen = () => {
   const confirmMarkReturned = async (additionalAmount = 0) => {
     try {
       const newPaidAmount = (booking.paidAmount || 0) + additionalAmount;
-      
+
       // Update paid amount if additional payment is provided
       if (additionalAmount > 0) {
         await bookingsService.updateBooking(id, {
@@ -84,7 +94,7 @@ const BookingDetailsScreen = () => {
           paidAmount: newPaidAmount,
         });
       }
-      
+
       // Mark as returned
       await bookingsService.markReturned(id);
       setShowPaymentModal(false);
@@ -102,17 +112,20 @@ const BookingDetailsScreen = () => {
       0,
       (booking.totalAmount || 0) - (booking.paidAmount || 0)
     );
-    
+
     if (amount < 0) {
       showError("Error", "Amount cannot be negative");
       return;
     }
-    
+
     if (amount > balance) {
-      showError("Error", `Amount cannot exceed balance of ₹${balance.toLocaleString("en-IN")}`);
+      showError(
+        "Error",
+        `Amount cannot exceed balance of ₹${balance.toLocaleString("en-IN")}`
+      );
       return;
     }
-    
+
     confirmMarkReturned(amount);
   };
 
@@ -138,12 +151,60 @@ const BookingDetailsScreen = () => {
 
   const handleWhatsApp = () => {
     const phone = booking?.phone?.replace(/\D/g, "");
-    const msg = `Hi ${
-      booking?.customerName
-    }, this is a message about your booking for ${
-      booking?.bike?.name || booking?.bikeName
-    }.`;
+    if (!phone) {
+      showError("Error", "Invalid phone number");
+      return;
+    }
+
+    const bikeName = booking?.bike?.name || booking?.bikeName || "your bike";
+    const bookingId = booking?.id || "";
+    const start = booking?.startDate ? new Date(booking.startDate) : null;
+    const end = booking?.endDate ? new Date(booking.endDate) : null;
+
+    const formattedStart = start
+      ? start.toLocaleDateString("en-IN", {
+          day: "2-digit",
+          month: "short",
+          year: "numeric",
+        })
+      : "N/A";
+
+    const formattedEnd = end
+      ? end.toLocaleDateString("en-IN", {
+          day: "2-digit",
+          month: "short",
+          year: "numeric",
+        })
+      : "N/A";
+
+    const totalAmount = booking?.totalAmount ?? "N/A";
+    const paidAmount = booking?.paidAmount ?? "N/A";
+    const balance = totalAmount - paidAmount;
+
+    const vendorName = "Velosta Rentals"; // <-- change or make dynamic
+
+    const msg = `
+Hi ${booking?.customerName},
+
+Here are the details of your bike booking:
+
+🆔 *Booking ID:* ${bookingId}
+🏍 *Bike:* ${bikeName}
+📅 *From:* ${formattedStart}
+📅 *To:* ${formattedEnd}
+
+💰 *Total Amount:* ₹${totalAmount}
+💵 *Paid:* ₹${paidAmount}
+💳 *Balance:* ₹${balance}
+
+If you have any questions, feel free to reply here.
+  
+Regards,  
+*${vendorName}*  
+  `.trim();
+
     const url = `https://wa.me/${phone}?text=${encodeURIComponent(msg)}`;
+
     Linking.canOpenURL(url).then((supported) => {
       if (supported) Linking.openURL(url);
       else showError("Error", "Cannot open WhatsApp");
@@ -152,7 +213,7 @@ const BookingDetailsScreen = () => {
 
   if (loading) {
     return (
-      <SafeAreaView style={styles.safeArea} edges={['top']}>
+      <SafeAreaView style={styles.safeArea} edges={["top"]}>
         <View
           style={[
             styles.container,
@@ -167,7 +228,7 @@ const BookingDetailsScreen = () => {
 
   if (!booking) {
     return (
-      <SafeAreaView style={styles.safeArea} edges={['top']}>
+      <SafeAreaView style={styles.safeArea} edges={["top"]}>
         <View style={styles.container}>
           <Text style={{ padding: 20 }}>No booking found.</Text>
         </View>
@@ -184,129 +245,132 @@ const BookingDetailsScreen = () => {
   );
 
   return (
-    <SafeAreaView style={styles.safeArea} edges={['top']}>
+    <SafeAreaView style={styles.safeArea} edges={["top"]}>
       {/* Header */}
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Booking Details</Text>
       </View>
 
-      <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+      <ScrollView
+        style={styles.container}
+        contentContainerStyle={styles.content}
+      >
         <View style={styles.card}>
-        {/* Header */}
-        <View style={styles.headerRow}>
-          <View>
-            <Text style={styles.name}>{booking.customerName}</Text>
-            <Text style={styles.sub}>{booking.phone}</Text>
+          {/* Header */}
+          <View style={styles.headerRow}>
+            <View>
+              <Text style={styles.name}>{booking.customerName}</Text>
+              <Text style={styles.sub}>{booking.phone}</Text>
+            </View>
+
+            <View style={styles.actionRow}>
+              <TouchableOpacity style={styles.iconBtn} onPress={handleWhatsApp}>
+                <MessageSquare size={18} color={COLORS.primary} />
+              </TouchableOpacity>
+
+              <TouchableOpacity style={styles.iconBtn} onPress={handleEdit}>
+                <Edit3 size={18} color={COLORS.text.secondary} />
+              </TouchableOpacity>
+            </View>
           </View>
 
-          <View style={styles.actionRow}>
-            <TouchableOpacity style={styles.iconBtn} onPress={handleWhatsApp}>
-              <MessageCircle size={18} color={COLORS.primary} />
-            </TouchableOpacity>
-
-            <TouchableOpacity style={styles.iconBtn} onPress={handleEdit}>
-              <Edit3 size={18} color={COLORS.text.secondary} />
-            </TouchableOpacity>
-          </View>
-        </View>
-
-        {/* Bike */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Bike</Text>
-          <Text style={styles.sectionValue}>
-            {booking.bike?.name || booking.bikeName}
-          </Text>
-          <Text style={styles.muted}>{booking.bike?.model || ""}</Text>
-        </View>
-
-        {/* Dates */}
-        <View style={styles.row}>
-          <View style={styles.smallCard}>
-            <Text style={styles.smallTitle}>Start</Text>
-            <Text style={styles.smallValue}>
-              {new Date(booking.startDate).toLocaleDateString()}
-            </Text>
-          </View>
-          <View style={styles.smallCard}>
-            <Text style={styles.smallTitle}>End</Text>
-            <Text style={styles.smallValue}>
-              {new Date(booking.endDate).toLocaleDateString()}
-            </Text>
-          </View>
-          <View style={styles.smallCard}>
-            <Text style={styles.smallTitle}>Duration</Text>
-            <Text style={styles.smallValue}>
-              {days} {days === 1 ? "day" : "days"}
-            </Text>
-          </View>
-        </View>
-
-        {/* Payment */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Payment</Text>
-          <View style={styles.rowBetween}>
-            <Text style={styles.muted}>Total</Text>
-            <Text style={styles.sectionValue}>
-              ₹{(booking.totalAmount || 0).toLocaleString("en-IN")}
-            </Text>
-          </View>
-          <View style={styles.rowBetween}>
-            <Text style={styles.muted}>Paid</Text>
-            <Text style={styles.sectionValue}>
-              ₹{(booking.paidAmount || 0).toLocaleString("en-IN")}
-            </Text>
-          </View>
-          <View style={styles.rowBetween}>
-            <Text style={styles.muted}>Balance</Text>
-            <Text
-              style={[
-                styles.sectionValue,
-                {
-                  color:
-                    booking.totalAmount - booking.paidAmount > 0
-                      ? "#d97706"
-                      : "#059669",
-                },
-              ]}
-            >
-              ₹
-              {Math.max(
-                0,
-                (booking.totalAmount || 0) - (booking.paidAmount || 0)
-              ).toLocaleString("en-IN")}
-            </Text>
-          </View>
-        </View>
-
-        {/* Notes */}
-        {booking.notes ? (
+          {/* Bike */}
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Notes</Text>
-            <Text style={styles.sectionValue}>{booking.notes}</Text>
+            <Text style={styles.sectionTitle}>Bike</Text>
+            <Text style={styles.sectionValue}>
+              {booking.bike?.name || booking.bikeName}
+            </Text>
+            <Text style={styles.muted}>{booking.bike?.model || ""}</Text>
           </View>
-        ) : null}
 
-        {/* Footer CTAs */}
-        <View style={styles.footer}>
-          {booking.status !== "RETURNED" && (
+          {/* Dates */}
+          <View style={styles.row}>
+            <View style={styles.smallCard}>
+              <Text style={styles.smallTitle}>Start</Text>
+              <Text style={styles.smallValue}>
+                {new Date(booking.startDate).toLocaleDateString()}
+              </Text>
+            </View>
+            <View style={styles.smallCard}>
+              <Text style={styles.smallTitle}>End</Text>
+              <Text style={styles.smallValue}>
+                {new Date(booking.endDate).toLocaleDateString()}
+              </Text>
+            </View>
+            <View style={styles.smallCard}>
+              <Text style={styles.smallTitle}>Duration</Text>
+              <Text style={styles.smallValue}>
+                {days} {days === 1 ? "day" : "days"}
+              </Text>
+            </View>
+          </View>
+
+          {/* Payment */}
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Payment</Text>
+            <View style={styles.rowBetween}>
+              <Text style={styles.muted}>Total</Text>
+              <Text style={styles.sectionValue}>
+                ₹{(booking.totalAmount || 0).toLocaleString("en-IN")}
+              </Text>
+            </View>
+            <View style={styles.rowBetween}>
+              <Text style={styles.muted}>Paid</Text>
+              <Text style={styles.sectionValue}>
+                ₹{(booking.paidAmount || 0).toLocaleString("en-IN")}
+              </Text>
+            </View>
+            <View style={styles.rowBetween}>
+              <Text style={styles.muted}>Balance</Text>
+              <Text
+                style={[
+                  styles.sectionValue,
+                  {
+                    color:
+                      booking.totalAmount - booking.paidAmount > 0
+                        ? "#d97706"
+                        : "#059669",
+                  },
+                ]}
+              >
+                ₹
+                {Math.max(
+                  0,
+                  (booking.totalAmount || 0) - (booking.paidAmount || 0)
+                ).toLocaleString("en-IN")}
+              </Text>
+            </View>
+          </View>
+
+          {/* Notes */}
+          {booking.notes ? (
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>Notes</Text>
+              <Text style={styles.sectionValue}>{booking.notes}</Text>
+            </View>
+          ) : null}
+
+          {/* Footer CTAs */}
+          <View style={styles.footer}>
+            {booking.status !== "RETURNED" && (
+              <TouchableOpacity
+                style={[styles.cta, { backgroundColor: "#059669" }]}
+                onPress={handleMarkReturned}
+              >
+                <CheckCircle2 size={18} color="#fff" />
+                <Text style={styles.ctaText}>Mark Returned</Text>
+              </TouchableOpacity>
+            )}
+
             <TouchableOpacity
-              style={[styles.cta, { backgroundColor: "#059669" }]}
-              onPress={handleMarkReturned}
+              style={[styles.cta, { backgroundColor: "#ef4444" }]}
+              onPress={handleDelete}
             >
-              <CheckCircle2 size={18} color="#fff" />
-              <Text style={styles.ctaText}>Mark Returned</Text>
+              <Trash2 size={18} color="#fff" />
+              <Text style={styles.ctaText}>Delete</Text>
             </TouchableOpacity>
-          )}
-
-          <TouchableOpacity
-            style={[styles.cta, { backgroundColor: "#ef4444" }]}
-            onPress={handleDelete}
-          >
-            <Trash2 size={18} color="#fff" />
-            <Text style={styles.ctaText}>Delete</Text>
-          </TouchableOpacity>
+          </View>
         </View>
-      </View>
       </ScrollView>
 
       {/* Payment Modal */}
@@ -332,7 +396,8 @@ const BookingDetailsScreen = () => {
               <View style={styles.balanceInfo}>
                 <Text style={styles.balanceLabel}>Current Balance</Text>
                 <Text style={styles.balanceAmount}>
-                  ₹{Math.max(
+                  ₹
+                  {Math.max(
                     0,
                     (booking.totalAmount || 0) - (booking.paidAmount || 0)
                   ).toLocaleString("en-IN")}
@@ -377,15 +442,26 @@ const BookingDetailsScreen = () => {
                 {additionalPayment && parseFloat(additionalPayment) > 0 && (
                   <View style={styles.summaryRow}>
                     <Text style={styles.summaryLabel}>Additional</Text>
-                    <Text style={[styles.summaryValue, { color: COLORS.primary }]}>
-                      +₹{parseFloat(additionalPayment || 0).toLocaleString("en-IN")}
+                    <Text
+                      style={[styles.summaryValue, { color: COLORS.primary }]}
+                    >
+                      +₹
+                      {parseFloat(additionalPayment || 0).toLocaleString(
+                        "en-IN"
+                      )}
                     </Text>
                   </View>
                 )}
                 <View style={[styles.summaryRow, styles.summaryRowTotal]}>
-                  <Text style={styles.summaryLabelTotal}>New Paid Amount</Text>
+                  <Text style={styles.summaryLabelTotal}>
+                    Total Paid Amount
+                  </Text>
                   <Text style={styles.summaryValueTotal}>
-                    ₹{((booking.paidAmount || 0) + parseFloat(additionalPayment || 0)).toLocaleString("en-IN")}
+                    ₹
+                    {(
+                      (booking.paidAmount || 0) +
+                      parseFloat(additionalPayment || 0)
+                    ).toLocaleString("en-IN")}
                   </Text>
                 </View>
               </View>
@@ -490,7 +566,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   ctaText: { color: "#fff", fontWeight: "700", marginLeft: 8 },
-  
+
   // Modal Styles
   modalOverlay: {
     flex: 1,

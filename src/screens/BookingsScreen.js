@@ -238,9 +238,9 @@ const BookingsScreen = () => {
           </Text>
         </View>
 
-        <TouchableOpacity style={styles.searchButton}>
+        {/* <TouchableOpacity style={styles.searchButton}>
           <Search size={20} color={COLORS.text.secondary} />
-        </TouchableOpacity>
+        </TouchableOpacity> */}
       </View>
 
       {/* tabs */}
@@ -474,7 +474,7 @@ const BookingsScreen = () => {
                   )}
                   <View style={[styles.summaryRow, styles.summaryRowTotal]}>
                     <Text style={styles.summaryLabelTotal}>
-                      New Paid Amount
+                      Total Paid Amount
                     </Text>
                     <Text style={styles.summaryValueTotal}>
                       ₹

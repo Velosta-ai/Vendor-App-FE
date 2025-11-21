@@ -13,7 +13,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useAlert } from "../contexts/AlertContext";
 import { User } from "lucide-react-native";
 import { COLORS, SPACING, FONT_SIZES, BORDER_RADIUS } from "../constants/theme";
-import { authService, setAuthToken } from "../services/api";
+import { authService, setAuthToken } from "../services/dataService";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const JoinOrgScreen = ({ navigation }) => {

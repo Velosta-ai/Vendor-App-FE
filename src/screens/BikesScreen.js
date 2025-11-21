@@ -1,3 +1,4 @@
+// src/screens/BikesScreen.js
 import React, { useState, useEffect } from "react";
 import {
   View,
@@ -6,41 +7,40 @@ import {
   FlatList,
   TouchableOpacity,
   RefreshControl,
-  Platform,
+  Alert,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useNavigation } from "@react-navigation/native";
 import { useAlert } from "../contexts/AlertContext";
-import { Plus, Search, Filter, Bike, Grid, List } from "lucide-react-native";
+import { Plus, Bike as BikeIcon } from "lucide-react-native";
 import BikeCard from "../components/BikeCard";
 import { bikesService } from "../services/dataService";
 
-import { COLORS as THEME_COLORS, SPACING as THEME_SPACING, FONT_SIZES as THEME_FONT_SIZES, BORDER_RADIUS as THEME_BORDER_RADIUS } from "../constants/theme";
+import {
+  COLORS as THEME_COLORS,
+  SPACING as THEME_SPACING,
+  FONT_SIZES as THEME_FONT_SIZES,
+  BORDER_RADIUS as THEME_BORDER_RADIUS,
+} from "../constants/theme";
 
-// Professional Colors - using new theme
+// Local palette
 const COLORS = {
   primary: THEME_COLORS.primary,
   background: THEME_COLORS.background,
   surface: THEME_COLORS.surface,
-
   text: {
     primary: THEME_COLORS.textPrimary,
     secondary: THEME_COLORS.textSecondary,
     tertiary: "#94a3b8",
   },
-
   border: {
     light: THEME_COLORS.borderLight,
     medium: THEME_COLORS.border,
   },
-
   status: {
     available: THEME_COLORS.success,
-    availableBg: "#ecfdf5",
-    rented: THEME_COLORS.warning,
-    rentedBg: "#fef3c7",
     maintenance: THEME_COLORS.error,
-    maintenanceBg: "#fef2f2",
+    rented: THEME_COLORS.warning,
   },
 };
 
@@ -49,40 +49,19 @@ const TYPOGRAPHY = {
   xs: THEME_FONT_SIZES.xs,
   sm: THEME_FONT_SIZES.sm,
   base: THEME_FONT_SIZES.md,
-  md: THEME_FONT_SIZES.lg,
   lg: THEME_FONT_SIZES.xl,
 };
+
 const RADIUS = THEME_BORDER_RADIUS;
 
-// Stats Summary Component
 const StatsSummary = ({ bikes }) => {
-  const available = bikes.filter((b) => b.status === "available").length;
-  const rented = bikes.filter((b) => b.status === "rented").length;
-  const maintenance = bikes.filter((b) => b.status === "maintenance").length;
+  const maintenance = bikes.filter((b) => b.status === "MAINTENANCE").length;
 
   return (
     <View style={styles.statsContainer}>
       <View style={styles.statBox}>
         <Text style={styles.statValue}>{bikes.length}</Text>
         <Text style={styles.statLabel}>Total</Text>
-      </View>
-
-      <View style={styles.statDivider} />
-
-      <View style={styles.statBox}>
-        <Text style={[styles.statValue, { color: COLORS.status.available }]}>
-          {available}
-        </Text>
-        <Text style={styles.statLabel}>Available</Text>
-      </View>
-
-      <View style={styles.statDivider} />
-
-      <View style={styles.statBox}>
-        <Text style={[styles.statValue, { color: COLORS.status.rented }]}>
-          {rented}
-        </Text>
-        <Text style={styles.statLabel}>Rented</Text>
       </View>
 
       <View style={styles.statDivider} />
@@ -99,10 +78,9 @@ const StatsSummary = ({ bikes }) => {
 
 const BikesScreen = () => {
   const navigation = useNavigation();
-  const { showError } = useAlert();
+  const { showError, showSuccess } = useAlert();
   const [bikes, setBikes] = useState([]);
   const [refreshing, setRefreshing] = useState(false);
-  const [viewMode, setViewMode] = useState("list"); // 'list' or 'grid'
 
   useEffect(() => {
     loadBikes();
@@ -111,10 +89,14 @@ const BikesScreen = () => {
   const loadBikes = async () => {
     try {
       const data = await bikesService.getBikes();
+      // normalize possible null responses
+      if (!Array.isArray(data)) {
+        throw new Error(data?.error || "Invalid bikes response");
+      }
       setBikes(data);
     } catch (error) {
       console.error("Error loading bikes:", error);
-      showError("Error", "Failed to load bikes");
+      showError("Error", error.message || "Failed to load bikes");
     }
   };
 
@@ -128,33 +110,45 @@ const BikesScreen = () => {
     navigation.navigate("AddEditBike", { bike });
   };
 
+  // toggle maintenance and refresh list
+  const handleToggleMaintenance = async (bike) => {
+    try {
+      // optimistic UX: show spinner inside card handled by BikeCard
+      const res = await bikesService.toggleMaintenance(bike.id);
+
+      if (res?.error) {
+        showError("Error", res.error);
+        return;
+      }
+
+      // success — reload list
+      await loadBikes();
+      showSuccess("Updated", `${bike.name} maintenance status updated.`);
+    } catch (err) {
+      console.error("toggle maintenance", err);
+      showError("Error", err.message || "Failed to update maintenance status");
+    }
+  };
+
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
-      {/* Header */}
+    <SafeAreaView style={styles.container} edges={["top"]}>
       <View style={styles.header}>
         <View>
           <Text style={styles.title}>Fleet</Text>
           <Text style={styles.subtitle}>{bikes.length} bikes in inventory</Text>
         </View>
-
-        <View style={styles.headerActions}>
-          <TouchableOpacity style={styles.iconButton}>
-            <Search size={20} color={COLORS.text.secondary} />
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.iconButton}>
-            <Filter size={20} color={COLORS.text.secondary} />
-          </TouchableOpacity>
-        </View>
       </View>
 
-      {/* Stats Summary */}
       {bikes.length > 0 && <StatsSummary bikes={bikes} />}
 
-      {/* Bikes List */}
       <FlatList
         data={bikes}
         renderItem={({ item }) => (
-          <BikeCard bike={item} onEdit={() => handleEditBike(item)} />
+          <BikeCard
+            bike={item}
+            onEdit={() => handleEditBike(item)}
+            onToggleMaintenance={handleToggleMaintenance}
+          />
         )}
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.listContent}
@@ -169,7 +163,7 @@ const BikesScreen = () => {
         ListEmptyComponent={
           <View style={styles.emptyState}>
             <View style={styles.emptyIcon}>
-              <Bike size={32} color={COLORS.text.tertiary} />
+              <BikeIcon size={32} color={COLORS.text.tertiary} />
             </View>
             <Text style={styles.emptyTitle}>No bikes in fleet</Text>
             <Text style={styles.emptyText}>
@@ -187,7 +181,6 @@ const BikesScreen = () => {
         }
       />
 
-      {/* Add Button (only show if bikes exist) */}
       {bikes.length > 0 && (
         <TouchableOpacity
           style={styles.addButton}
@@ -207,7 +200,6 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.background,
   },
 
-  // Header
   header: {
     backgroundColor: COLORS.surface,
     paddingTop: SPACING.lg,
@@ -230,22 +222,7 @@ const styles = StyleSheet.create({
     color: COLORS.text.secondary,
     fontWeight: "500",
   },
-  headerActions: {
-    flexDirection: "row",
-    gap: SPACING.sm,
-  },
-  iconButton: {
-    width: 40,
-    height: 40,
-    borderRadius: RADIUS.md,
-    backgroundColor: COLORS.background,
-    alignItems: "center",
-    justifyContent: "center",
-    borderWidth: 1,
-    borderColor: COLORS.border.light,
-  },
 
-  // Stats Summary
   statsContainer: {
     backgroundColor: COLORS.surface,
     flexDirection: "row",
@@ -275,12 +252,11 @@ const styles = StyleSheet.create({
     marginHorizontal: SPACING.sm,
   },
 
-  // List
   listContent: {
     paddingVertical: SPACING.md,
+    paddingBottom: 120,
   },
 
-  // Empty State
   emptyState: {
     flex: 1,
     alignItems: "center",
@@ -326,7 +302,6 @@ const styles = StyleSheet.create({
     color: "#fff",
   },
 
-  // Add Button
   addButton: {
     position: "absolute",
     bottom: SPACING.xxl,

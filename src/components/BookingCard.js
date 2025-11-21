@@ -29,11 +29,11 @@ const COLORS = {
 
   status: {
     active: THEME_COLORS.info,
-    activeBg: "#08ad37ff",
+    activeBg: "#ecfdf5",
     upcoming: THEME_COLORS.warning,
     upcomingBg: "#fef3c7",
-    returned: THEME_COLORS.success,
-    returnedBg: "#ecfdf5",
+    returned: "#3b82f6",
+    returnedBg: "#c0e0fbff",
   },
 };
 
@@ -68,7 +68,7 @@ const BookingCard = ({
       case "ACTIVE":
         return {
           label: "Active",
-          color: "white",
+          color: "green",
           bg: COLORS.status.activeBg,
         };
       case "UPCOMING":

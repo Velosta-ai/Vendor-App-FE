@@ -1,176 +1,145 @@
-import React from "react";
-import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
+// src/components/BikeCard.js
+import React, { useState } from "react";
 import {
-  Bike,
-  Edit3,
-  Calendar,
-  IndianRupee,
-  Settings,
-  CheckCircle2,
-  Clock,
-  AlertCircle,
-} from "lucide-react-native";
+  View,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  ActivityIndicator,
+  Alert,
+} from "react-native";
+import { Bike, Edit, Wrench } from "lucide-react-native"; // 🔥 FIXED: Tools → Wrench
 
-import { COLORS as THEME_COLORS } from "../constants/theme";
+import {
+  COLORS as THEME_COLORS,
+  SPACING as THEME_SPACING,
+  FONT_SIZES as THEME_FONT_SIZES,
+  BORDER_RADIUS as THEME_BORDER_RADIUS,
+} from "../constants/theme";
 
 const COLORS = {
   primary: THEME_COLORS.primary,
   surface: THEME_COLORS.surface,
-
-  text: {
-    primary: THEME_COLORS.textPrimary,
-    secondary: THEME_COLORS.textSecondary,
-    tertiary: "#94a3b8",
-  },
-
-  border: {
-    light: THEME_COLORS.borderLight,
-  },
-
-  status: {
-    available: THEME_COLORS.success,
-    availableBg: "#ecfdf5",
-    rented: THEME_COLORS.warning,
-    rentedBg: "#fef3c7",
-    maintenance: THEME_COLORS.error,
-    maintenanceBg: "#fef2f2",
-  },
+  background: THEME_COLORS.background,
+  textPrimary: THEME_COLORS.textPrimary,
+  textSecondary: THEME_COLORS.textSecondary,
+  success: THEME_COLORS.success,
+  warning: THEME_COLORS.warning,
+  error: THEME_COLORS.error,
+  borderLight: THEME_COLORS.borderLight,
 };
 
-const SPACING = {
-  xs: 4,
-  sm: 8,
-  md: 12,
-  lg: 16,
+const TYPO = {
+  sm: THEME_FONT_SIZES.sm,
+  base: THEME_FONT_SIZES.md,
+  lg: THEME_FONT_SIZES.xl,
 };
 
-const TYPOGRAPHY = {
-  xs: 11,
-  sm: 13,
-  base: 15,
-  md: 17,
-};
+const RADIUS = THEME_BORDER_RADIUS;
 
-const RADIUS = {
-  sm: 6,
-  md: 10,
-  lg: 14,
-};
+const BikeCard = ({
+  bike,
+  onEdit = () => {},
+  onToggleMaintenance = () => {},
+}) => {
+  const [loading, setLoading] = useState(false);
 
-const BikeCard = ({ bike, onEdit }) => {
-  const getStatusConfig = () => {
-    switch (bike.status) {
-      case "available":
-        return {
-          label: "Available",
-          color: COLORS.status.available,
-          bg: COLORS.status.availableBg,
-          icon: <CheckCircle2 size={12} color={COLORS.status.available} />,
-        };
-      case "rented":
-        return {
-          label: "Rented",
-          color: COLORS.status.rented,
-          bg: COLORS.status.rentedBg,
-          icon: <Clock size={12} color={COLORS.status.rented} />,
-        };
-      case "maintenance":
-        return {
-          label: "Maintenance",
-          color: COLORS.status.maintenance,
-          bg: COLORS.status.maintenanceBg,
-          icon: <AlertCircle size={12} color={COLORS.status.maintenance} />,
-        };
-      default:
-        return {
-          label: "Unknown",
-          color: COLORS.text.tertiary,
-          bg: COLORS.border.light,
-          icon: null,
-        };
+  const handleToggle = async () => {
+    if (bike.status === "AVAILABLE") {
+      Alert.alert(
+        "Move to Maintenance?",
+        `${bike.name} will be unavailable for booking until restored.`,
+        [
+          { text: "Cancel", style: "cancel" },
+          {
+            text: "Confirm",
+            onPress: async () => {
+              setLoading(true);
+              try {
+                await onToggleMaintenance(bike);
+              } finally {
+                setLoading(false);
+              }
+            },
+            style: "destructive",
+          },
+        ]
+      );
+      return;
+    }
+
+    setLoading(true);
+    try {
+      await onToggleMaintenance(bike);
+    } finally {
+      setLoading(false);
     }
   };
 
-  const statusConfig = getStatusConfig();
+  const statusLabel =
+    bike.status === "MAINTENANCE"
+      ? "Maintenance"
+      : bike.status === "RENTED"
+      ? "Rented"
+      : "Available";
 
   return (
     <View style={styles.card}>
-      {/* Header */}
-      <View style={styles.header}>
-        <View style={styles.headerLeft}>
-          <View style={[styles.bikeIcon, { backgroundColor: statusConfig.bg }]}>
-            <Bike size={20} color={statusConfig.color} />
-          </View>
-          <View style={styles.headerInfo}>
-            <Text style={styles.bikeName}>{bike.name}</Text>
-            <Text style={styles.bikeModel}>
-              {bike.model || "Standard Model"}
-            </Text>
-          </View>
+      <View style={styles.left}>
+        <View style={styles.iconWrap}>
+          <Bike size={20} color={COLORS.primary} />
         </View>
+
+        <View style={{ flex: 1 }}>
+          <Text style={styles.name}>{bike.name}</Text>
+          <Text style={styles.reg}>{bike.registrationNumber}</Text>
+          <Text style={styles.rate}>₹{bike.dailyRate}/day</Text>
+        </View>
+      </View>
+
+      <View style={styles.right}>
+        <View
+          style={[
+            styles.statusPill,
+            bike.status === "MAINTENANCE" && styles.statusMaintenance,
+            bike.status === "RENTED" && styles.statusRented,
+          ]}
+        >
+          <Text
+            style={[
+              styles.statusText,
+              bike.status === "MAINTENANCE" && { color: COLORS.error },
+              bike.status === "RENTED" && { color: COLORS.warning },
+            ]}
+          >
+            {statusLabel}
+          </Text>
+        </View>
+
+        <TouchableOpacity style={styles.editBtn} onPress={onEdit}>
+          <Edit size={16} color={COLORS.primary} />
+        </TouchableOpacity>
 
         <TouchableOpacity
-          style={styles.editButton}
-          onPress={onEdit}
-          activeOpacity={0.7}
+          style={[
+            styles.maintBtn,
+            bike.status === "MAINTENANCE" ? styles.maintBtnActive : null,
+          ]}
+          onPress={handleToggle}
+          activeOpacity={0.8}
+          disabled={loading || bike.status === "RENTED"}
         >
-          <Edit3 size={18} color={COLORS.text.secondary} />
+          {loading ? (
+            <ActivityIndicator size="small" color="#fff" />
+          ) : (
+            <>
+              <Wrench size={14} color="#fff" />
+              <Text style={styles.maintBtnText}>
+                {bike.status === "MAINTENANCE" ? "Restore" : "Maintenance"}
+              </Text>
+            </>
+          )}
         </TouchableOpacity>
-      </View>
-
-      {/* Info Grid */}
-      <View style={styles.infoGrid}>
-        <View style={styles.infoItem}>
-          <View style={styles.infoIcon}>
-            <Settings size={14} color={COLORS.text.tertiary} />
-          </View>
-          <View>
-            <Text style={styles.infoLabel}>Registration</Text>
-            <Text style={styles.infoValue}>
-              {bike.registrationNumber || "N/A"}
-            </Text>
-          </View>
-        </View>
-
-        <View style={styles.infoItem}>
-          <View style={styles.infoIcon}>
-            <Calendar size={14} color={COLORS.text.tertiary} />
-          </View>
-          <View>
-            <Text style={styles.infoLabel}>Year</Text>
-            <Text style={styles.infoValue}>{bike.year || "N/A"}</Text>
-          </View>
-        </View>
-
-        <View style={styles.infoItem}>
-          <View style={styles.infoIcon}>
-            <IndianRupee size={14} color={COLORS.text.tertiary} />
-          </View>
-          <View>
-            <Text style={styles.infoLabel}>Daily Rate</Text>
-            <Text style={styles.infoValue}>
-              ₹{bike.dailyRate?.toLocaleString("en-IN") || "0"}
-            </Text>
-          </View>
-        </View>
-      </View>
-
-      {/* Footer */}
-      <View style={styles.footer}>
-        <View
-          style={[styles.statusBadge, { backgroundColor: statusConfig.bg }]}
-        >
-          {statusConfig.icon}
-          <Text style={[styles.statusText, { color: statusConfig.color }]}>
-            {statusConfig.label}
-          </Text>
-        </View>
-
-        {bike.currentBooking && (
-          <Text style={styles.bookingInfo}>
-            Rented to {bike.currentBooking.customerName}
-          </Text>
-        )}
       </View>
     </View>
   );
@@ -179,120 +148,80 @@ const BikeCard = ({ bike, onEdit }) => {
 const styles = StyleSheet.create({
   card: {
     backgroundColor: COLORS.surface,
-    marginHorizontal: SPACING.lg,
-    marginBottom: SPACING.md,
-    borderRadius: RADIUS.lg,
-    padding: SPACING.lg,
-    borderWidth: 1,
-    borderColor: COLORS.border.light,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.04,
-    shadowRadius: 3,
-    elevation: 2,
-  },
-
-  // Header
-  header: {
+    borderRadius: RADIUS.md,
+    padding: THEME_SPACING.lg,
+    marginHorizontal: THEME_SPACING.lg,
+    marginVertical: THEME_SPACING.sm,
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: SPACING.lg,
+    borderWidth: 1,
+    borderColor: COLORS.borderLight,
   },
-  headerLeft: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: SPACING.md,
-    flex: 1,
-  },
-  bikeIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: RADIUS.sm,
+
+  left: { flexDirection: "row", gap: 12, flex: 1, alignItems: "center" },
+
+  iconWrap: {
+    width: 56,
+    height: 56,
+    borderRadius: 12,
+    backgroundColor: COLORS.background,
     alignItems: "center",
     justifyContent: "center",
+    borderWidth: 1,
+    borderColor: COLORS.borderLight,
   },
-  headerInfo: {
-    flex: 1,
-  },
-  bikeName: {
-    fontSize: TYPOGRAPHY.base,
+
+  name: { fontSize: TYPO.lg, fontWeight: "700", color: COLORS.textPrimary },
+  reg: { fontSize: TYPO.sm, color: COLORS.textSecondary, marginTop: 4 },
+  rate: {
+    fontSize: TYPO.sm,
     fontWeight: "600",
-    color: COLORS.text.primary,
-    marginBottom: 2,
+    color: COLORS.primary,
+    marginTop: 6,
   },
-  bikeModel: {
-    fontSize: TYPOGRAPHY.xs,
-    color: COLORS.text.tertiary,
-    fontWeight: "500",
+
+  right: { alignItems: "flex-end" },
+
+  statusPill: {
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 8,
+    backgroundColor: "#E8F8EE",
+    marginBottom: 8,
   },
-  editButton: {
+
+  statusText: { fontSize: 12, fontWeight: "700", color: COLORS.success },
+
+  statusMaintenance: { backgroundColor: "#FFE4E6" },
+  statusRented: { backgroundColor: "#FFF4D6" },
+
+  editBtn: {
+    marginBottom: 8,
     width: 36,
     height: 36,
-    borderRadius: RADIUS.sm,
-    backgroundColor: COLORS.border.light,
+    borderRadius: 10,
+    backgroundColor: COLORS.background,
     alignItems: "center",
     justifyContent: "center",
+    borderWidth: 1,
+    borderColor: COLORS.borderLight,
   },
 
-  // Info Grid
-  infoGrid: {
+  maintBtn: {
     flexDirection: "row",
-    marginBottom: SPACING.lg,
-    paddingBottom: SPACING.lg,
-    borderBottomWidth: 1,
-    borderBottomColor: COLORS.border.light,
-  },
-  infoItem: {
-    flex: 1,
-    flexDirection: "row",
-    gap: SPACING.xs,
-    paddingRight: SPACING.sm,
-  },
-  infoIcon: {
-    width: 24,
-    height: 24,
-    borderRadius: RADIUS.sm,
-    backgroundColor: COLORS.border.light,
     alignItems: "center",
-    justifyContent: "center",
-  },
-  infoLabel: {
-    fontSize: TYPOGRAPHY.xs,
-    color: COLORS.text.tertiary,
-    marginBottom: 2,
-    fontWeight: "500",
-  },
-  infoValue: {
-    fontSize: TYPOGRAPHY.sm,
-    color: COLORS.text.primary,
-    fontWeight: "600",
+    backgroundColor: COLORS.error,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 10,
   },
 
-  // Footer
-  footer: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
+  maintBtnActive: {
+    backgroundColor: COLORS.primary,
   },
-  statusBadge: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: SPACING.sm,
-    paddingVertical: SPACING.xs,
-    borderRadius: RADIUS.sm,
-    gap: 4,
-  },
-  statusText: {
-    fontSize: TYPOGRAPHY.xs,
-    fontWeight: "600",
-  },
-  bookingInfo: {
-    fontSize: TYPOGRAPHY.xs,
-    color: COLORS.text.tertiary,
-    fontWeight: "500",
-    fontStyle: "italic",
-  },
+
+  maintBtnText: { color: "#fff", fontWeight: "700", fontSize: TYPO.sm },
 });
 
 export default BikeCard;
