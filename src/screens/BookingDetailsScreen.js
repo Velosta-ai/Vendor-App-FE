@@ -394,7 +394,7 @@ Regards,
 
             <View style={styles.modalBody}>
               <View style={styles.balanceInfo}>
-                <Text style={styles.balanceLabel}>Current Balance</Text>
+                <Text style={styles.balanceLabel}>Balance Amount</Text>
                 <Text style={styles.balanceAmount}>
                   ₹
                   {Math.max(
@@ -405,7 +405,7 @@ Regards,
               </View>
 
               <View style={styles.paymentInputGroup}>
-                <Text style={styles.paymentLabel}>Additional Payment (₹)</Text>
+                <Text style={styles.paymentLabel}>Remaining Payment (₹)</Text>
                 <View style={styles.paymentInputContainer}>
                   <View style={styles.paymentInputIcon}>
                     <IndianRupee size={20} color={COLORS.text.tertiary} />
