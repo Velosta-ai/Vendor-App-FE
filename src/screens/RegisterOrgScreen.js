@@ -9,10 +9,11 @@ import {
   Platform,
   ActivityIndicator,
   ScrollView,
+  Image,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useAlert } from "../contexts/AlertContext";
-import { Lock, User } from "lucide-react-native";
+import { User, Eye, EyeOff } from "lucide-react-native";
 import { COLORS, SPACING, FONT_SIZES, BORDER_RADIUS } from "../constants/theme";
 import { authService, setAuthToken } from "../services/dataService";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -25,6 +26,7 @@ const RegisterOrgScreen = ({ navigation }) => {
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const finishSignup = async (res) => {
@@ -69,13 +71,21 @@ const RegisterOrgScreen = ({ navigation }) => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView contentContainerStyle={{ padding: SPACING.xl }}>
-        <KeyboardAvoidingView
-          behavior={Platform.OS === "ios" ? "padding" : "height"}
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        style={{ flex: 1 }}
+      >
+        <ScrollView
+          contentContainerStyle={{ padding: SPACING.xl, flexGrow: 1 }}
+          keyboardShouldPersistTaps="handled"
         >
           <View style={styles.header}>
             <View style={styles.logoContainer}>
-              <Lock size={48} color={COLORS.primary} />
+              <Image
+                source={require("../../logo.png")}
+                style={styles.logo}
+                resizeMode="contain"
+              />
             </View>
             <Text style={styles.title}>Create Organization</Text>
             <Text style={styles.subtitle}>Set up your company on Velosta</Text>
@@ -148,9 +158,19 @@ const RegisterOrgScreen = ({ navigation }) => {
                 placeholderTextColor={COLORS.textLight}
                 value={password}
                 onChangeText={setPassword}
-                secureTextEntry
+                secureTextEntry={!showPassword}
                 autoCapitalize="none"
               />
+              <TouchableOpacity
+                onPress={() => setShowPassword(!showPassword)}
+                style={styles.eyeIcon}
+              >
+                {showPassword ? (
+                  <EyeOff size={20} color={COLORS.textSecondary} />
+                ) : (
+                  <Eye size={20} color={COLORS.textSecondary} />
+                )}
+              </TouchableOpacity>
             </View>
 
             <TouchableOpacity
@@ -176,8 +196,8 @@ const RegisterOrgScreen = ({ navigation }) => {
               </TouchableOpacity>
             </View>
           </View>
-        </KeyboardAvoidingView>
-      </ScrollView>
+        </ScrollView>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 };
@@ -186,13 +206,18 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.background },
   header: { alignItems: "center", marginBottom: SPACING.lg },
   logoContainer: {
-    width: 80,
-    height: 80,
-    borderRadius: BORDER_RADIUS.xl,
-    backgroundColor: `${COLORS.primary}15`,
+    width: 100,
+    height: 100,
+    borderRadius: 20,
+    backgroundColor: COLORS.primary,
     justifyContent: "center",
     alignItems: "center",
     marginBottom: SPACING.lg,
+    overflow: "hidden",
+  },
+  logo: {
+    width: 100,
+    height: 100,
   },
   title: { fontSize: 22, fontWeight: "bold", color: COLORS.textPrimary },
   subtitle: {
@@ -217,6 +242,9 @@ const styles = StyleSheet.create({
     height: 48,
     fontSize: FONT_SIZES.md,
     color: COLORS.textPrimary,
+  },
+  eyeIcon: {
+    padding: SPACING.sm,
   },
   label: {
     fontSize: FONT_SIZES.md,
