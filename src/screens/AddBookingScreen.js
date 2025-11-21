@@ -181,7 +181,7 @@ const AddBookingScreen = () => {
 
   const loadBikesAndAvail = async () => {
     try {
-      const all = await bikesService.getBikes();
+      const all = await bikesService.getBikes({ skipGlobalLoader: true });
       // show all bikes (Option A)
       setBikes(all || []);
 
