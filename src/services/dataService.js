@@ -94,7 +94,14 @@ export const dashboardService = {
       const res = await fetch(`${API_BASE}/dashboard`, {
         headers: authHeaders(),
       });
-      return await res.json();
+      
+      const data = await res.json();
+      
+      if (!res.ok) {
+        throw new Error(data.error || `HTTP ${res.status}: ${res.statusText}`);
+      }
+      
+      return data;
     }, options);
   },
 };
@@ -104,6 +111,12 @@ export const bikesService = {
   async getBikes(options) {
     return withLoading(async () => {
       const res = await fetch(`${API_BASE}/bikes`, { headers: authHeaders() });
+      
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({ error: "Server error" }));
+        throw new Error(errorData.error || `HTTP ${res.status}: ${res.statusText}`);
+      }
+      
       return await res.json();
     }, options);
   },
@@ -113,6 +126,12 @@ export const bikesService = {
       const res = await fetch(`${API_BASE}/bikes/${id}/availability`, {
         headers: authHeaders(),
       });
+      
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({ error: "Server error" }));
+        throw new Error(errorData.error || `HTTP ${res.status}`);
+      }
+      
       const text = await res.text();
       try {
         return JSON.parse(text);
@@ -128,6 +147,12 @@ export const bikesService = {
       const res = await fetch(`${API_BASE}/bikes/${id}`, {
         headers: authHeaders(),
       });
+      
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({ error: "Server error" }));
+        throw new Error(errorData.error || `HTTP ${res.status}`);
+      }
+      
       return await res.json();
     }, options);
   },
@@ -139,7 +164,14 @@ export const bikesService = {
         headers: authHeaders(),
         body: JSON.stringify(payload),
       });
-      return await res.json();
+      
+      const data = await res.json();
+      
+      if (!res.ok) {
+        throw new Error(data.error || `HTTP ${res.status}: ${res.statusText}`);
+      }
+      
+      return data;
     }, options);
   },
 
@@ -150,7 +182,14 @@ export const bikesService = {
         headers: authHeaders(),
         body: JSON.stringify(payload),
       });
-      return await res.json();
+      
+      const data = await res.json();
+      
+      if (!res.ok) {
+        throw new Error(data.error || `HTTP ${res.status}: ${res.statusText}`);
+      }
+      
+      return data;
     }, options);
   },
 
@@ -161,7 +200,14 @@ export const bikesService = {
         headers: authHeaders(),
         body: JSON.stringify({ status }),
       });
-      return await res.json();
+      
+      const data = await res.json();
+      
+      if (!res.ok) {
+        throw new Error(data.error || `HTTP ${res.status}: ${res.statusText}`);
+      }
+      
+      return data;
     }, options);
   },
 
@@ -172,6 +218,12 @@ export const bikesService = {
         method: "PATCH",
         headers: authHeaders(),
       });
+      
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({ error: "Server error" }));
+        throw new Error(errorData.error || `HTTP ${res.status}`);
+      }
+      
       const text = await res.text();
       try {
         return JSON.parse(text);
@@ -188,7 +240,14 @@ export const bikesService = {
         method: "DELETE",
         headers: authHeaders(),
       });
-      return await res.json();
+      
+      const data = await res.json();
+      
+      if (!res.ok) {
+        throw new Error(data.error || `HTTP ${res.status}: ${res.statusText}`);
+      }
+      
+      return data;
     }, options);
   },
 };
@@ -202,7 +261,14 @@ export const bookingsService = {
         : `${API_BASE}/bookings`;
 
       const res = await fetch(url, { headers: authHeaders() });
-      return await res.json();
+      
+      const data = await res.json();
+      
+      if (!res.ok) {
+        throw new Error(data.error || `HTTP ${res.status}: ${res.statusText}`);
+      }
+      
+      return data;
     }, options);
   },
 
@@ -211,7 +277,14 @@ export const bookingsService = {
       const res = await fetch(`${API_BASE}/bookings/${id}`, {
         headers: authHeaders(),
       });
-      return await res.json();
+      
+      const data = await res.json();
+      
+      if (!res.ok) {
+        throw new Error(data.error || `HTTP ${res.status}: ${res.statusText}`);
+      }
+      
+      return data;
     }, options);
   },
 
@@ -222,7 +295,14 @@ export const bookingsService = {
         headers: authHeaders(),
         body: JSON.stringify(payload),
       });
-      return await res.json();
+      
+      const data = await res.json();
+      
+      if (!res.ok) {
+        throw new Error(data.error || `HTTP ${res.status}: ${res.statusText}`);
+      }
+      
+      return data;
     }, options);
   },
 
@@ -233,7 +313,14 @@ export const bookingsService = {
         headers: authHeaders(),
         body: JSON.stringify(payload),
       });
-      return await res.json();
+      
+      const data = await res.json();
+      
+      if (!res.ok) {
+        throw new Error(data.error || `HTTP ${res.status}: ${res.statusText}`);
+      }
+      
+      return data;
     }, options);
   },
 
@@ -243,7 +330,14 @@ export const bookingsService = {
         method: "PATCH",
         headers: authHeaders(),
       });
-      return await res.json();
+      
+      const data = await res.json();
+      
+      if (!res.ok) {
+        throw new Error(data.error || `HTTP ${res.status}: ${res.statusText}`);
+      }
+      
+      return data;
     }, options);
   },
 
@@ -253,7 +347,14 @@ export const bookingsService = {
         method: "DELETE",
         headers: authHeaders(),
       });
-      return await res.json();
+      
+      const data = await res.json();
+      
+      if (!res.ok) {
+        throw new Error(data.error || `HTTP ${res.status}: ${res.statusText}`);
+      }
+      
+      return data;
     }, options);
   },
 };

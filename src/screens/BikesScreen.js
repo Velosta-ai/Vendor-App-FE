@@ -86,14 +86,28 @@ const BikesScreen = () => {
   const loadBikes = useCallback(async () => {
     try {
       const data = await bikesService.getBikes({ skipGlobalLoader: true });
-      // normalize possible null responses
-      if (!Array.isArray(data)) {
-        throw new Error(data?.error || "Invalid bikes response");
+      
+      // Check if response has an error field
+      if (data?.error) {
+        console.error("API Error:", data.error);
+        showError("Error", data.error);
+        setBikes([]); // Set empty array to prevent crash
+        return;
       }
+      
+      // Validate that we received an array
+      if (!Array.isArray(data)) {
+        console.error("Invalid response format:", data);
+        showError("Error", "Invalid response from server");
+        setBikes([]);
+        return;
+      }
+      
       setBikes(data);
     } catch (error) {
       console.error("Error loading bikes:", error);
-      showError("Error", error.message || "Failed to load bikes");
+      showError("Error", error?.message || "Failed to load bikes");
+      setBikes([]);
     }
   }, [showError]);
 
