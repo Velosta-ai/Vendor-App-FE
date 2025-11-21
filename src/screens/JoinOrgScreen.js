@@ -174,6 +174,7 @@ const JoinOrgScreen = ({ navigation }) => {
               <Text style={{ color: COLORS.textSecondary }}>Back to Login</Text>
             </TouchableOpacity>
           </View>
+          </View>
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
