@@ -20,23 +20,32 @@ let authToken = null;
 
 export const setAuthToken = (token) => {
   authToken = token;
+  console.log('[DataService] Token set in memory:', token ? 'Present' : 'Missing');
 };
 
 // Helper to get token from AsyncStorage if not in memory
 const getAuthToken = async () => {
-  if (authToken) return authToken;
+  // Return cached token if available
+  if (authToken) {
+    console.log('[DataService] Using cached token');
+    return authToken;
+  }
   
+  // Try to retrieve from AsyncStorage
   try {
+    console.log('[DataService] Retrieving token from AsyncStorage...');
     const authData = await AsyncStorage.getItem(AUTH_KEY);
     if (authData) {
       const { user } = JSON.parse(authData);
       if (user?.token) {
         authToken = user.token;
+        console.log('[DataService] Token retrieved from AsyncStorage');
         return authToken;
       }
     }
+    console.log('[DataService] No token found in AsyncStorage');
   } catch (error) {
-    console.error('Error getting auth token:', error);
+    console.error('[DataService] Error getting auth token:', error);
   }
   return null;
 };
@@ -70,6 +79,13 @@ const withLoading = async (apiCall, options = {}) => {
 // AUTH HEADERS
 const authHeaders = async () => {
   const token = await getAuthToken();
+  
+  if (!token) {
+    console.error('[DataService] No auth token available for API request');
+    throw new Error('Authentication required. Please log in again.');
+  }
+  
+  console.log('[DataService] Auth headers created with token');
   return {
     "Content-Type": "application/json",
     Authorization: `Bearer ${token}`,

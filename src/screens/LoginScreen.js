@@ -39,18 +39,26 @@ const LoginScreen = ({ navigation }) => {
       });
 
       if (res && res.token) {
-        // Set token for API calls
+        console.log('[Login] Login successful, saving auth...');
+        
+        // Set token for API calls FIRST
         setAuthToken(res.token);
         
-        // Save auth with 7-day session
-        await saveAuth({
+        // Save auth with 7-day session and WAIT for completion
+        const saved = await saveAuth({
           token: res.token,
           account: res.account || {},
           email: username.trim(),
           organizationName: res.organization?.name || "Organization",
         });
         
-        // Navigation will happen automatically via RootNavigator
+        if (saved) {
+          console.log('[Login] Auth saved successfully');
+          // Navigation will happen automatically via RootNavigator
+        } else {
+          console.error('[Login] Failed to save auth');
+          showError("Error", "Failed to save authentication. Please try again.");
+        }
       } else {
         const message =
           (res && res.message) || (res && res.error) || "Login failed";

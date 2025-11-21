@@ -19,6 +19,7 @@ export const AuthProvider = ({ children }) => {
 
   const checkAuth = async () => {
     try {
+      console.log('[AuthContext] Checking authentication...');
       const authData = await AsyncStorage.getItem(AUTH_KEY);
       
       if (authData) {
@@ -27,20 +28,33 @@ export const AuthProvider = ({ children }) => {
         
         // Check if session is still valid (within 7 days)
         if (now - timestamp < SESSION_DURATION) {
-          setIsAuthenticated(true);
-          setUser(savedUser);
+          console.log('[AuthContext] Valid session found, restoring...');
           
-          // Restore auth token for API calls
+          // CRITICAL: Set token FIRST before updating state
           if (savedUser.token) {
             setAuthToken(savedUser.token);
+            console.log('[AuthContext] Token restored from storage');
+            
+            // Small delay to ensure token is set in module
+            await new Promise(resolve => setTimeout(resolve, 100));
+            
+            setIsAuthenticated(true);
+            setUser(savedUser);
+          } else {
+            console.warn('[AuthContext] No token found in saved user data');
+            // No token means invalid session, logout
+            await logout();
           }
         } else {
           // Session expired, clear storage
+          console.log('[AuthContext] Session expired, logging out...');
           await logout();
         }
+      } else {
+        console.log('[AuthContext] No saved authentication found');
       }
     } catch (error) {
-      console.error('Error checking auth:', error);
+      console.error('[AuthContext] Error checking auth:', error);
     } finally {
       setIsLoading(false);
     }
@@ -48,28 +62,43 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (userData) => {
     try {
+      console.log('[AuthContext] Logging in user...');
       const authData = {
         timestamp: Date.now(),
         user: userData,
       };
       
       await AsyncStorage.setItem(AUTH_KEY, JSON.stringify(authData));
+      console.log('[AuthContext] Auth data saved to AsyncStorage');
+      
+      // CRITICAL: Set the token in dataService immediately
+      if (userData.token) {
+        setAuthToken(userData.token);
+        console.log('[AuthContext] Token set in dataService');
+      } else {
+        console.warn('[AuthContext] No token in userData during login');
+      }
+      
       setIsAuthenticated(true);
       setUser(userData);
+      console.log('[AuthContext] Login complete');
       return true;
     } catch (error) {
-      console.error('Error saving auth:', error);
+      console.error('[AuthContext] Error saving auth:', error);
       return false;
     }
   };
 
   const logout = async () => {
     try {
+      console.log('[AuthContext] Logging out...');
       await AsyncStorage.removeItem(AUTH_KEY);
+      setAuthToken(null); // Clear token from dataService
       setIsAuthenticated(false);
       setUser(null);
+      console.log('[AuthContext] Logout complete');
     } catch (error) {
-      console.error('Error logging out:', error);
+      console.error('[AuthContext] Error logging out:', error);
     }
   };
 

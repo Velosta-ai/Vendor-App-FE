@@ -11,6 +11,8 @@ import {
   ActivityIndicator,
   Modal,
   TextInput,
+  Clipboard,
+  Platform,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRoute, useNavigation } from "@react-navigation/native";
@@ -23,6 +25,7 @@ import {
   IndianRupee,
   X,
   MessageSquare,
+  Copy,
 } from "lucide-react-native";
 import { bookingsService } from "../services/dataService";
 
@@ -58,11 +61,13 @@ const BookingDetailsScreen = () => {
   const loadBooking = async () => {
     try {
       setLoading(true);
+      console.log('[BookingDetails] Loading booking:', id);
       const data = await bookingsService.getBookingById(id);
+      console.log('[BookingDetails] Booking loaded successfully');
       setBooking(data);
     } catch (err) {
-      console.error(err);
-      showError("Error", "Failed to load booking");
+      console.error('[BookingDetails] Error loading booking:', err);
+      showError("Error", err.message || "Failed to load booking");
       navigation.goBack();
     } finally {
       setLoading(false);
@@ -149,12 +154,27 @@ const BookingDetailsScreen = () => {
     ]);
   };
 
-  const handleWhatsApp = () => {
-    const phone = booking?.phone?.replace(/\D/g, "");
-    if (!phone) {
-      showError("Error", "Invalid phone number");
+  const handleWhatsApp = async () => {
+    console.log('[BookingDetails] WhatsApp button clicked');
+    console.log('[BookingDetails] Booking phone:', booking?.phone);
+    
+    // Extract only digits from phone number
+    let phone = booking?.phone?.replace(/\D/g, "");
+    
+    if (!phone || phone.length < 10) {
+      console.error('[BookingDetails] Invalid phone number:', phone);
+      showError("Error", "Invalid phone number. Please update the booking with a valid phone number.");
       return;
     }
+
+    // Ensure phone number has country code
+    // If it starts with 91 and is 12 digits, it already has country code
+    // If it's 10 digits, add 91
+    if (phone.length === 10) {
+      phone = '91' + phone;
+    }
+    
+    console.log('[BookingDetails] Formatted phone:', phone);
 
     const bikeName = booking?.bike?.name || booking?.bikeName || "your bike";
     const bookingId = booking?.id || "";
@@ -177,14 +197,13 @@ const BookingDetailsScreen = () => {
         })
       : "N/A";
 
-    const totalAmount = booking?.totalAmount ?? "N/A";
-    const paidAmount = booking?.paidAmount ?? "N/A";
-    const balance = totalAmount - paidAmount;
+    const totalAmount = Number(booking?.totalAmount) || 0;
+    const paidAmount = Number(booking?.paidAmount) || 0;
+    const balance = Math.max(0, totalAmount - paidAmount);
 
     const vendorName = "Velosta Rentals"; // <-- change or make dynamic
 
-    const msg = `
-Hi ${booking?.customerName},
+    const msg = `Hi ${booking?.customerName || 'there'},
 
 Here are the details of your bike booking:
 
@@ -193,22 +212,72 @@ Here are the details of your bike booking:
 📅 *From:* ${formattedStart}
 📅 *To:* ${formattedEnd}
 
-💰 *Total Amount:* ₹${totalAmount}
-💵 *Paid:* ₹${paidAmount}
-💳 *Balance:* ₹${balance}
+💰 *Total Amount:* ₹${totalAmount.toLocaleString('en-IN')}
+💵 *Paid:* ₹${paidAmount.toLocaleString('en-IN')}
+💳 *Balance:* ₹${balance.toLocaleString('en-IN')}
 
 If you have any questions, feel free to reply here.
   
 Regards,  
-*${vendorName}*  
-  `.trim();
+*${vendorName}*`;
 
-    const url = `https://wa.me/${phone}?text=${encodeURIComponent(msg)}`;
+    console.log('[BookingDetails] Message prepared, length:', msg.length);
 
-    Linking.canOpenURL(url).then((supported) => {
-      if (supported) Linking.openURL(url);
-      else showError("Error", "Cannot open WhatsApp");
-    });
+    // Use only the most reliable WhatsApp URL format
+    // For Android, whatsapp://send works best
+    const url = Platform.OS === 'android' 
+      ? `whatsapp://send?phone=${phone}&text=${encodeURIComponent(msg)}`
+      : `https://wa.me/${phone}?text=${encodeURIComponent(msg)}`;
+
+    console.log('[BookingDetails] Attempting to open WhatsApp URL');
+    console.log('[BookingDetails] Phone:', phone);
+    console.log('[BookingDetails] Platform:', Platform.OS);
+    
+    try {
+      // Try to open WhatsApp directly without checking canOpenURL
+      // because canOpenURL might return false even when WhatsApp is installed
+      await Linking.openURL(url);
+      console.log('[BookingDetails] WhatsApp opened successfully');
+    } catch (err) {
+      console.error('[BookingDetails] Error opening WhatsApp:', err);
+      
+      // If direct opening fails, show options
+      Alert.alert(
+        "Cannot Open WhatsApp",
+        `Could not open WhatsApp automatically. Choose an option:
+
+Phone: ${phone}`,
+        [
+          { text: "Cancel", style: "cancel" },
+          {
+            text: "Try wa.me Link",
+            onPress: async () => {
+              try {
+                const waUrl = `https://wa.me/${phone}?text=${encodeURIComponent(msg)}`;
+                await Linking.openURL(waUrl);
+              } catch (error) {
+                showError("Error", "Could not open WhatsApp. Please make sure it's installed.");
+              }
+            }
+          },
+          {
+            text: "Copy Message",
+            onPress: () => {
+              Clipboard.setString(msg);
+              showSuccess("Copied", "Message copied! Open WhatsApp and paste it manually.");
+            }
+          },
+          {
+            text: "Copy Phone",
+            onPress: () => {
+              Clipboard.setString(phone);
+              showSuccess("Copied", `Phone number ${phone} copied!`);
+            }
+          }
+        ],
+        { cancelable: true }
+      );
+    }
   };
 
   if (loading) {

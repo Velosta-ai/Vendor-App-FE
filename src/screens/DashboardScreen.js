@@ -156,8 +156,12 @@ const DashboardScreen = () => {
       setError(null);
     }
     try {
+      console.log('[Dashboard] Loading dashboard data...');
       const res = await dashboardService.getDashboard({ skipGlobalLoader: true });
+      console.log('[Dashboard] Dashboard data loaded successfully');
+      
       if (res?.error) {
+        console.error('[Dashboard] API returned error:', res.error);
         setError(res.error || "Failed to fetch dashboard");
         setStats(null);
       } else {
@@ -184,9 +188,10 @@ const DashboardScreen = () => {
         } else if (res.organization?.name) {
           setOrganizationName(res.organization.name);
         }
+        setError(null); // Clear any previous errors
       }
     } catch (err) {
-      console.error("loadDashboard error:", err);
+      console.error('[Dashboard] Error loading dashboard:', err);
       setError(err.message || "Failed to load dashboard");
       setStats(null);
     } finally {
