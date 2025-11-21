@@ -47,7 +47,7 @@ const LoginScreen = ({ navigation }) => {
           token: res.token,
           account: res.account || {},
           email: username.trim(),
-          organizationName: res.organizationName || res.organization?.name || res.vendor?.name || "Organization",
+          organizationName: res.organization?.name || "Organization",
         });
         
         // Navigation will happen automatically via RootNavigator

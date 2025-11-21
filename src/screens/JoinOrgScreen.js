@@ -36,7 +36,7 @@ const JoinOrgScreen = ({ navigation }) => {
         "velosta_account",
         JSON.stringify({
           ...res.account,
-          organizationName: res.organizationName || res.organization?.name || res.vendor?.name || "Organization",
+          organizationName: res.organization?.name || "Organization",
         })
       );
       showSuccess("Joined", "Successfully joined organization");

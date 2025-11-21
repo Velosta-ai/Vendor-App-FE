@@ -37,7 +37,7 @@ const RegisterOrgScreen = ({ navigation }) => {
         "velosta_account",
         JSON.stringify({
           ...res.account,
-          organizationName: res.organizationName || res.organization?.name || res.vendor?.name || orgName,
+          organizationName: res.organization?.name || orgName,
         })
       );
       showSuccess("Welcome", "Organization created successfully");
