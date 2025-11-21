@@ -1,5 +1,5 @@
 // src/screens/BikesScreen.js
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   View,
   Text,
@@ -10,7 +10,7 @@ import {
   Alert,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import { useAlert } from "../contexts/AlertContext";
 import { Plus, Bike as BikeIcon } from "lucide-react-native";
 import BikeCard from "../components/BikeCard";
@@ -82,11 +82,7 @@ const BikesScreen = () => {
   const [bikes, setBikes] = useState([]);
   const [refreshing, setRefreshing] = useState(false);
 
-  useEffect(() => {
-    loadBikes();
-  }, []);
-
-  const loadBikes = async () => {
+  const loadBikes = useCallback(async () => {
     try {
       const data = await bikesService.getBikes({ skipGlobalLoader: true });
       // normalize possible null responses
@@ -98,7 +94,18 @@ const BikesScreen = () => {
       console.error("Error loading bikes:", error);
       showError("Error", error.message || "Failed to load bikes");
     }
-  };
+  }, [showError]);
+
+  useEffect(() => {
+    loadBikes();
+  }, [loadBikes]);
+
+  // Auto-refresh when screen comes into focus
+  useFocusEffect(
+    useCallback(() => {
+      loadBikes();
+    }, [loadBikes])
+  );
 
   const onRefresh = async () => {
     setRefreshing(true);

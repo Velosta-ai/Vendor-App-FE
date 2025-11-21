@@ -14,7 +14,7 @@ import {
   Alert,
   Platform,
 } from "react-native";
-import { useNavigation, useRoute } from "@react-navigation/native";
+import { useNavigation, useRoute, useFocusEffect } from "@react-navigation/native";
 import {
   Bike,
   TimerReset,
@@ -179,6 +179,13 @@ const DashboardScreen = () => {
   useEffect(() => {
     loadDashboard();
   }, [loadDashboard]);
+
+  // Auto-refresh when screen comes into focus
+  useFocusEffect(
+    useCallback(() => {
+      loadDashboard({ showLoader: false });
+    }, [loadDashboard])
+  );
 
   const onRefresh = async () => {
     setRefreshing(true);
