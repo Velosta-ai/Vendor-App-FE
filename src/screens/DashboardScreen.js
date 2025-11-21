@@ -142,7 +142,7 @@ const DashboardScreen = () => {
       setError(null);
     }
     try {
-      const res = await dashboardService.getDashboard();
+      const res = await dashboardService.getDashboard({ skipGlobalLoader: true });
       if (res?.error) {
         setError(res.error || "Failed to fetch dashboard");
         setStats(null);

@@ -26,12 +26,22 @@ export const setLoadingManager = (manager) => {
   loadingManager = manager;
 };
 
-const withLoading = async (apiCall) => {
-  if (loadingManager?.showLoading) loadingManager.showLoading();
+const withLoading = async (apiCall, options = {}) => {
+  const { skipGlobalLoader = false } = options;
+  
+  if (!skipGlobalLoader && loadingManager?.showLoading) {
+    loadingManager.showLoading();
+  }
+  
   try {
     return await apiCall();
+  } catch (error) {
+    console.error('API Error:', error);
+    throw error;
   } finally {
-    if (loadingManager?.hideLoading) loadingManager.hideLoading();
+    if (!skipGlobalLoader && loadingManager?.hideLoading) {
+      loadingManager.hideLoading();
+    }
   }
 };
 
@@ -79,26 +89,26 @@ export const authService = {
 
 /* ------------------------------ DASHBOARD ------------------------------ */
 export const dashboardService = {
-  getDashboard() {
+  getDashboard(options) {
     return withLoading(async () => {
       const res = await fetch(`${API_BASE}/dashboard`, {
         headers: authHeaders(),
       });
       return await res.json();
-    });
+    }, options);
   },
 };
 
 /* ------------------------------ BIKES ------------------------------ */
 export const bikesService = {
-  async getBikes() {
+  async getBikes(options) {
     return withLoading(async () => {
       const res = await fetch(`${API_BASE}/bikes`, { headers: authHeaders() });
       return await res.json();
-    });
+    }, options);
   },
 
-  async getBikeAvailability(id) {
+  async getBikeAvailability(id, options) {
     return withLoading(async () => {
       const res = await fetch(`${API_BASE}/bikes/${id}/availability`, {
         headers: authHeaders(),
@@ -110,19 +120,19 @@ export const bikesService = {
         console.warn("Non-JSON availability response:", text);
         throw new Error("Invalid response from server");
       }
-    });
+    }, options);
   },
 
-  async getBikeById(id) {
+  async getBikeById(id, options) {
     return withLoading(async () => {
       const res = await fetch(`${API_BASE}/bikes/${id}`, {
         headers: authHeaders(),
       });
       return await res.json();
-    });
+    }, options);
   },
 
-  async createBike(payload) {
+  async createBike(payload, options) {
     return withLoading(async () => {
       const res = await fetch(`${API_BASE}/bikes`, {
         method: "POST",
@@ -130,10 +140,10 @@ export const bikesService = {
         body: JSON.stringify(payload),
       });
       return await res.json();
-    });
+    }, options);
   },
 
-  async updateBike(id, payload) {
+  async updateBike(id, payload, options) {
     return withLoading(async () => {
       const res = await fetch(`${API_BASE}/bikes/${id}`, {
         method: "PUT",
@@ -141,10 +151,10 @@ export const bikesService = {
         body: JSON.stringify(payload),
       });
       return await res.json();
-    });
+    }, options);
   },
 
-  async updateBikeStatus(id, status) {
+  async updateBikeStatus(id, status, options) {
     return withLoading(async () => {
       const res = await fetch(`${API_BASE}/bikes/${id}/status`, {
         method: "PATCH",
@@ -152,11 +162,11 @@ export const bikesService = {
         body: JSON.stringify({ status }),
       });
       return await res.json();
-    });
+    }, options);
   },
 
   // NEW: toggle maintenance flag
-  async toggleMaintenance(id) {
+  async toggleMaintenance(id, options) {
     return withLoading(async () => {
       const res = await fetch(`${API_BASE}/bikes/${id}/maintenance`, {
         method: "PATCH",
@@ -169,13 +179,13 @@ export const bikesService = {
         console.warn("Non-JSON toggleMaintenance response:", text);
         throw new Error("Invalid response from server");
       }
-    });
+    }, options);
   },
 };
 
 /* ------------------------------ BOOKINGS ------------------------------ */
 export const bookingsService = {
-  async getBookings(status = null) {
+  async getBookings(status = null, options) {
     return withLoading(async () => {
       const url = status
         ? `${API_BASE}/bookings?status=${status}`
@@ -183,19 +193,19 @@ export const bookingsService = {
 
       const res = await fetch(url, { headers: authHeaders() });
       return await res.json();
-    });
+    }, options);
   },
 
-  async getBookingById(id) {
+  async getBookingById(id, options) {
     return withLoading(async () => {
       const res = await fetch(`${API_BASE}/bookings/${id}`, {
         headers: authHeaders(),
       });
       return await res.json();
-    });
+    }, options);
   },
 
-  async createBooking(payload) {
+  async createBooking(payload, options) {
     return withLoading(async () => {
       const res = await fetch(`${API_BASE}/bookings`, {
         method: "POST",
@@ -203,10 +213,10 @@ export const bookingsService = {
         body: JSON.stringify(payload),
       });
       return await res.json();
-    });
+    }, options);
   },
 
-  async updateBooking(id, payload) {
+  async updateBooking(id, payload, options) {
     return withLoading(async () => {
       const res = await fetch(`${API_BASE}/bookings/${id}`, {
         method: "PUT",
@@ -214,26 +224,26 @@ export const bookingsService = {
         body: JSON.stringify(payload),
       });
       return await res.json();
-    });
+    }, options);
   },
 
-  async markReturned(id) {
+  async markReturned(id, options) {
     return withLoading(async () => {
       const res = await fetch(`${API_BASE}/bookings/${id}/returned`, {
         method: "PATCH",
         headers: authHeaders(),
       });
       return await res.json();
-    });
+    }, options);
   },
 
-  async deleteBooking(id) {
+  async deleteBooking(id, options) {
     return withLoading(async () => {
       const res = await fetch(`${API_BASE}/bookings/${id}`, {
         method: "DELETE",
         headers: authHeaders(),
       });
       return await res.json();
-    });
+    }, options);
   },
 };

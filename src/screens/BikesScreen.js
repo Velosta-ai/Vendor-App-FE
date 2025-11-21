@@ -88,7 +88,7 @@ const BikesScreen = () => {
 
   const loadBikes = async () => {
     try {
-      const data = await bikesService.getBikes();
+      const data = await bikesService.getBikes({ skipGlobalLoader: true });
       // normalize possible null responses
       if (!Array.isArray(data)) {
         throw new Error(data?.error || "Invalid bikes response");

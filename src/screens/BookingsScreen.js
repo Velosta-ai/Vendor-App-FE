@@ -69,9 +69,9 @@ const BookingsScreen = () => {
 
   const loadBookings = async () => {
     try {
-      const active = await bookingsService.getBookings("ACTIVE");
-      const upcoming = await bookingsService.getBookings("UPCOMING");
-      const returned = await bookingsService.getBookings("RETURNED");
+      const active = await bookingsService.getBookings("ACTIVE", { skipGlobalLoader: true });
+      const upcoming = await bookingsService.getBookings("UPCOMING", { skipGlobalLoader: true });
+      const returned = await bookingsService.getBookings("RETURNED", { skipGlobalLoader: true });
       setBookings({ active, upcoming, returned });
     } catch (error) {
       console.error("Error loading bookings:", error);
