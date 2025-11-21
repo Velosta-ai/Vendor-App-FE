@@ -34,7 +34,10 @@ const JoinOrgScreen = ({ navigation }) => {
       await AsyncStorage.setItem("velosta_token", res.token);
       await AsyncStorage.setItem(
         "velosta_account",
-        JSON.stringify(res.account || {})
+        JSON.stringify({
+          ...res.account,
+          organizationName: res.organizationName || res.organization?.name || res.vendor?.name || "Organization",
+        })
       );
       showSuccess("Joined", "Successfully joined organization");
       navigation.reset({ index: 0, routes: [{ name: "Dashboard" }] });

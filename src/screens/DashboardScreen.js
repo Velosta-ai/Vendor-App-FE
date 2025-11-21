@@ -120,12 +120,14 @@ const StatCard = ({ title, value, subtitle, icon, bgColor, onPress }) => {
 const DashboardScreen = () => {
   const navigation = useNavigation();
   const route = useRoute();
-  const { logout } = useAuth();
+  const { logout, user } = useAuth();
 
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [organizationName, setOrganizationName] = useState("Organization");
+  const [organizationName, setOrganizationName] = useState(
+    user?.organizationName || user?.account?.organizationName || "Organization"
+  );
   const [time, setTime] = useState(new Date());
   const [error, setError] = useState(null);
 

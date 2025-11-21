@@ -35,7 +35,10 @@ const RegisterOrgScreen = ({ navigation }) => {
       await AsyncStorage.setItem("velosta_token", res.token);
       await AsyncStorage.setItem(
         "velosta_account",
-        JSON.stringify(res.account || {})
+        JSON.stringify({
+          ...res.account,
+          organizationName: res.organizationName || res.organization?.name || res.vendor?.name || orgName,
+        })
       );
       showSuccess("Welcome", "Organization created successfully");
       navigation.reset({ index: 0, routes: [{ name: "Dashboard" }] });
